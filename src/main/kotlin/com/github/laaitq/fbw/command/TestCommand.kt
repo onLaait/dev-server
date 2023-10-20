@@ -5,130 +5,51 @@ import com.github.laaitq.fbw.game.attack.Ray
 import com.github.laaitq.fbw.game.obj.GameObject
 import com.github.laaitq.fbw.game.obj.PlayerObject
 import com.github.laaitq.fbw.game.utils.showOneDust
-import com.github.laaitq.fbw.utils.AudienceUtils.broadcast
+import com.github.laaitq.fbw.system.OpSystem.isOp
 import com.github.laaitq.fbw.utils.AudienceUtils.sendMsg
 import com.github.laaitq.fbw.utils.toVector3d
 import net.kyori.adventure.sound.Sound
-import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.command.builder.Command
-import net.minestom.server.command.builder.arguments.ArgumentType
+import net.minestom.server.command.builder.arguments.ArgumentWord
+import net.minestom.server.command.builder.arguments.number.ArgumentDouble
+import net.minestom.server.command.builder.arguments.number.ArgumentInteger
+import net.minestom.server.coordinate.Vec
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.Player
-import net.minestom.server.particle.Particle
-import net.minestom.server.particle.ParticleCreator
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
-import org.joml.*
+import org.joml.Matrix4d
+import org.joml.Vector3d
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
 object TestCommand : Command("test") {
     init {
-        val num1 = ArgumentType.Integer("arg1")
-        val num2 = ArgumentType.Double("arg2").setDefaultValue(1.0)
+        setCondition { sender, _ -> sender.isOp }
+
+        val argWord = ArgumentWord("word")
+        val argInt1 = ArgumentInteger("int1")
+        val argDouble1 = ArgumentDouble("double1")
+        val argDouble2 = ArgumentDouble("double2")
+        val argDouble3 = ArgumentDouble("double3")
+
+        setDefaultExecutor { sender, _ ->
+            sender.sendMsg("?")
+        }
+
+        addSyntax({ sender, _ ->
+            sender.sendMsg("test")
+            sender.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1f, 2f))
+        })
 
         addSyntax({ sender, context ->
-            when (context[num1]) {
-                1 -> {
-                    println("test")
-                    sender.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1f, 2f))
-                }
-
-                2 -> {
-                    val player = sender as Player
-                    val pos = player.position.add(0.0, 1.62, 0.0)
-                    var posP = pos
-                    val dir = player.position.direction()
-                    val dirP = dir.div(2.0)
-                    repeat(100) {
-                        posP = posP.add(dirP)
-                        player.sendPacketToViewersAndSelf(ParticleCreator.createParticlePacket(
-                            Particle.DUST,
-                            true,
-                            posP.x,
-                            posP.y,
-                            posP.z,
-                            0f,
-                            0f,
-                            0f,
-                            0f,
-                            1
-                        ) { binaryWriter ->
-                            binaryWriter.writeFloat(0.4745098f)
-                            binaryWriter.writeFloat(0.19607843f)
-                            binaryWriter.writeFloat(0.7882353f)
-                            binaryWriter.writeFloat(0.3f)
-                        })
-                    }
-                    for (target in MinecraftServer.getConnectionManager().onlinePlayers) {
-                        if (target != player) {
-                            val targetPos = target.position
-                            if (dir.dot(targetPos.withY { y -> y + 0.9375 }.sub(pos).asVec()) < 0) continue
-                            val x = pos.sub(targetPos).asVec()
-                            val a = dir.dot(dir) - dir.y.pow(2)
-                            val b = dir.dot(x) - dir.y * x.y
-                            val c = x.dot(x) - x.y.pow(2) - 0.1225
-                            val discriminant = b.pow(2) - a * c
-                            if (discriminant >= 0) {
-                                val sqrtDiscriminant = sqrt(discriminant)
-                                val p = mutableListOf<Double>()
-                                listOf(((-1) * b + sqrtDiscriminant) / a, ((-1) * b - sqrtDiscriminant) / a).forEach {
-                                    if (dir.y * it + x.y in 0.0..1.65) {
-                                        p += it
-                                    }
-                                }
-                                // 밑면
-                                val l = mutableListOf<Double>()
-                                if (x.y >= 0 && dir.y < 0 || x.y < 0 && dir.y > 0) {
-                                    l += (-1) * x.y / dir.y
-                                }
-                                if ((targetPos.y + 1.65 - pos.y) >= 0 && dir.y > 0 || (targetPos.y + 1.65 - pos.y) < 0 && dir.y < 0) {
-                                    l += (targetPos.y + 1.65 - pos.y) / dir.y
-                                }
-                                if (l.size != 0) {
-                                    val lmin = l.min()
-                                    val v = pos.add(dir.mul(lmin))
-                                    if (abs(v.x - targetPos.x) <= 0.35 && abs(v.z - targetPos.z) <= 0.35) {
-                                        p += lmin
-                                    }
-                                }
-                                if (p.size != 0) {
-                                    val point = pos.add(dir.mul(p.min()))
-                                    println("$p ${point.y - targetPos.y}")
-                                    broadcast(Component.text("${target.username} 명중"))
-                                    player.sendPacketToViewersAndSelf(ParticleCreator.createParticlePacket(
-                                        Particle.DUST,
-                                        true,
-                                        point.x,
-                                        point.y,
-                                        point.z,
-                                        0f,
-                                        0f,
-                                        0f,
-                                        0f,
-                                        50
-                                    ) { binaryWriter ->
-                                        binaryWriter.writeFloat(1f)
-                                        binaryWriter.writeFloat(1f)
-                                        binaryWriter.writeFloat(1f)
-                                        binaryWriter.writeFloat(1f)
-                                    })
-                                }
-                            }
-                        }
-                    }
-                }
-
-                3 -> {
-                    MinecraftServer.getSchedulerManager().buildTask {
-                        sender.sendMsg("a")
-                    }.delay(TaskSchedule.tick(1)).schedule()
-                }
-
-                4 -> {
+            when (context[argWord]) {
+                "throw_as" -> {
                     val player = sender as Player
                     val pos = player.position
                     val dir = player.position.direction().mul(8.0)
@@ -144,7 +65,7 @@ object TestCommand : Command("test") {
                     }
                 }
 
-                5 -> {
+                "spawn_as" -> {
                     val player = sender as Player
                     val entity = Entity(EntityType.ARMOR_STAND)
                     entity.setInstance(Instance.instance, player.position)
@@ -152,7 +73,7 @@ object TestCommand : Command("test") {
                     entity.spawn()
                 }
 
-                6 -> {
+                "ray" -> {
                     val shooter = sender as Player
                     val targetObjs = hashSetOf<GameObject>()
                     for (player in MinecraftServer.getConnectionManager().onlinePlayers) {
@@ -206,13 +127,30 @@ object TestCommand : Command("test") {
                         pos = pos.add(ray.direction)
                         showOneDust(252, 140, 255, pos)
                     }
-
                 }
+            }
+        }, argWord)
 
-                7 -> {
+        addSyntax({ sender, context ->
+            when (context[argWord]) {
+                "schedule" -> {
+                    if (sender !is Player) return@addSyntax
+                    repeat(context[argInt1]) { i ->
+                        MinecraftServer.getSchedulerManager().buildTask {
+                            sender.sendMsg("$i")
+                            sender.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1f, 2f))
+                        }.delay(if (i == 0) TaskSchedule.immediate() else TaskSchedule.millis((i*50).toLong())).schedule()
+                    }
+                }
+            }
+        }, argWord, argInt1)
+
+        addSyntax({ sender, context ->
+            when (context[argWord]) {
+                "projectile" -> {
                     val player = sender as Player
                     var pos = player.position.add(0.0, 1.62, 0.0)
-                    var v = player.position.direction().mul(context[num2])
+                    var v = player.position.direction().mul(context[argDouble1])
                     thread {
                         val entity = Entity(EntityType.ARMOR_STAND)
                         entity.setInstance(Instance.instance, pos)
@@ -229,47 +167,21 @@ object TestCommand : Command("test") {
                         entity.remove()
                     }
                 }
+            }
+        }, argWord, argDouble1)
 
-                8 -> { // 헤드 반두께: 0.1125
-                    val player = sender as Player
-                    var t = player
-                    for (target in MinecraftServer.getConnectionManager().onlinePlayers) {
-                        if (target != player) {
-                            t = target
-                            break
-                        }
-                    }
-
-                    var pos = t.position
-                    val transform = Matrix4d()
-                        .setTranslation(Vector3d(pos.x, pos.y + 1.7625, pos.z))
-                        .rotateAround(
-                            Quaterniond(AxisAngle4d(Math.toRadians(pos.yaw.toDouble()), Vector3d(0.0, -1.0, 0.0)))
-                                .mul(Quaterniond(AxisAngle4d(Math.toRadians(pos.pitch.toDouble()), Vector3d(1.0, 0.0, 0.0)))),
-                            0.0, -0.35625, 0.0
-                        )
-                    println("T ${transform.getTranslation(Vector3d())}")
-                    for (rX in -10..10) {
-                        for (rY in -10..10) {
-                            for (rZ in -10..10) {
-                                val ray = Ray().apply {
-                                    origin = player.position.add(0.0, 1.62, 0.0)
-                                    direction = player.position.direction().rotate(rX.toDouble(), rY.toDouble(), rZ.toDouble())
-                                }
-                                val intersection = intersectRayOBB(
-                                    ray,
-                                    OBB(transform, Vector3d(0.234375, 0.1125, 0.234375))
-                                )
-                                if (intersection != null) {
-                                    showOneDust(255, 255, 255, 0.5f, ray.origin.add(ray.direction.mul(intersection)))
-                                    println(intersection)
-                                }
-                            }
-                        }
+        addSyntax({ sender, context ->
+            when (context[argWord]) {
+                "velocity" -> { // 최댓값 ≒ 410
+                    if (sender !is Player) return@addSyntax
+                    repeat(context[argInt1]) { i ->
+                        MinecraftServer.getSchedulerManager().buildTask {
+                            sender.velocity = Vec(context[argDouble1], context[argDouble2], context[argDouble3])
+                        }.delay(if (i == 0) TaskSchedule.immediate() else TaskSchedule.millis((i*50).toLong())).schedule()
                     }
                 }
             }
-        }, num1, num2)
+        }, argWord, argDouble1, argDouble2, argDouble3, argInt1)
     }
 }
 
@@ -319,8 +231,10 @@ fun intersectRayOBBLegacy(ray: Ray, obb: OBB): Double? {
         val t5 = (it.z - localRayOrigin.z) / localRayDir.z
         val t6 = (-it.z - localRayOrigin.z) / localRayDir.z
 
-        Pair(max(max(min(t1, t2), min(t3, t4)), min(t5, t6)),
-            min(min(max(t1, t2), max(t3, t4)), max(t5, t6)))
+        Pair(
+            max(max(min(t1, t2), min(t3, t4)), min(t5, t6)),
+            min(min(max(t1, t2), max(t3, t4)), max(t5, t6))
+        )
     }
 
     if (tmax < 0 || tmin > tmax) return null

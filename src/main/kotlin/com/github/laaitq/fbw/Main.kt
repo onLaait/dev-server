@@ -20,7 +20,7 @@ object Main {
         val startTime = System.currentTimeMillis()
         Logger.info("Starting minecraft server version ${MinecraftServer.VERSION_NAME}")
 
-        System.setProperty("minestom.tps", "40")
+        System.setProperty("minestom.tps", "100")
         val minecraftServer = MinecraftServer.init()
 
         MojangAuth.init()
