@@ -46,7 +46,6 @@ object ServerStatus {
                 Memory.totalMemP = runtime.totalMemory() / 1024 / 1024
                 Memory.freeMemP = runtime.freeMemory() / 1024 / 1024
 
-                val maxPlayers = ServerProperties.MAX_PLAYERS
                 val tps = TPS.tps
                 val tpsStr = StringBuilder(String.format("%.1f", tps))
                 if (tps == TPS.maxTps) tpsStr.append('*')
@@ -57,7 +56,7 @@ object ServerStatus {
                     (
                         "                                   \n" +
                         "테스트 서버\n" +
-                        "%s/$maxPlayers\n"
+                        "%s/%s\n"
                     ),
                     (
                         "\n" +
@@ -79,11 +78,12 @@ object ServerStatus {
         val footer = content.second
 
         val onlinePlayersCount = PlayerUtils.onlinePlayersCount
+        val maxPlayers = ServerProperties.MAX_PLAYERS
 
         this.forEachAudience { audience ->
             if (audience !is Player) return@forEachAudience
             audience.sendPlayerListHeaderAndFooter(
-                TextUtils.formatText(String.format(header, onlinePlayersCount)),
+                TextUtils.formatText(String.format(header, onlinePlayersCount, maxPlayers)),
                 TextUtils.formatText(String.format(footer, audience.latency))
             )
         }

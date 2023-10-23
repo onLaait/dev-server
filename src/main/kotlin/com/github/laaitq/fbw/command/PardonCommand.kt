@@ -22,7 +22,7 @@ object PardonCommand : Command("pardon", "unban") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(usage("${context.commandName} <플레이어> [사유]"))
+            sender.sendMsg(usage("${context.commandName} <대상> [사유]"))
         }
 
         val argPlayer = ArgumentString("플레이어")

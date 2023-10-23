@@ -42,8 +42,8 @@ object WhitelistCommand : Command("whitelist") {
                 usage(
                     "${context.commandName} on",
                     "${context.commandName} off",
-                    "${context.commandName} add <플레이어>",
-                    "${context.commandName} remove <플레이어>",
+                    "${context.commandName} add <대상>",
+                    "${context.commandName} remove <대상>",
                     "${context.commandName} list",
                     "${context.commandName} reload"
                 )

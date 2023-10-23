@@ -3,6 +3,7 @@ package com.github.laaitq.fbw
 import com.github.laaitq.fbw.command.CommandRegister
 import com.github.laaitq.fbw.system.*
 import com.github.laaitq.fbw.terminal.MinestomTerminal
+import com.github.laaitq.fbw.utils.ComponentUtils
 import com.github.laaitq.fbw.utils.PlayerUtils
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
@@ -18,20 +19,16 @@ object Main {
 
     private fun runServer() {
         val startTime = System.currentTimeMillis()
-        Logger.info("Starting minecraft server version ${MinecraftServer.VERSION_NAME}")
-
-        System.setProperty("minestom.tps", "100")
-        val minecraftServer = MinecraftServer.init()
-
-        MojangAuth.init()
+        Logger.info("Starting Minecraft server version ${MinecraftServer.VERSION_NAME}")
 
         ServerProperties
-        PlayerData
-        BanSystem
-        OpSystem
-        Whitelist
-        Listener
-        CommandRegister
+        val viewDistanceStr = ServerProperties.VIEW_DISTANCE.toString()
+        System.setProperty("minestom.chunk-view-distance", viewDistanceStr)
+        System.setProperty("minestom.entity-view-distance", viewDistanceStr)
+        System.setProperty("minestom.tps", "100")
+
+        val minecraftServer = MinecraftServer.init()
+        MojangAuth.init()
 
         MinecraftServer.setCompressionThreshold(
             ServerProperties.NETWORK_COMPRESSION_THRESHOLD.let {
@@ -42,6 +39,21 @@ object Main {
                 }
             }
         )
+
+        val ip = ServerProperties.SERVER_IP
+        val port = ServerProperties.SERVER_PORT
+        Logger.info("Starting Minecraft server on ${ip.ifBlank { "*" }}:$port")
+        minecraftServer.start(ip.ifBlank { "0.0.0.0" }, port)
+
+        PlayerData
+        BanSystem
+        OpSystem
+        Whitelist
+
+        Event
+        CommandRegister
+
+        ComponentUtils
 
         MinecraftServer.getSchedulerManager().buildShutdownTask {
             Logger.info("Stopping server")
@@ -54,9 +66,6 @@ object Main {
         }
 
         Instance
-
-        Logger.info("Hosting server on ${ServerProperties.SERVER_IP.ifBlank { "*" }}:${ServerProperties.SERVER_PORT}")
-        minecraftServer.start(ServerProperties.SERVER_IP, ServerProperties.SERVER_PORT)
 
         MinestomTerminal.start()
 

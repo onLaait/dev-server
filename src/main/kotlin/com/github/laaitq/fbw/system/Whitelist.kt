@@ -8,7 +8,6 @@ import com.github.laaitq.fbw.utils.PlayerUtils.allPlayers
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.minestom.server.entity.Player
 import java.io.BufferedWriter
@@ -28,9 +27,10 @@ object Whitelist {
     }
 
     fun read() {
+        Logger.debug("Loading whitelist")
         if (File(jsonPath).exists()) {
             try {
-                val list: Collection<WhitelistedPlayer> = Json.decodeFromString(FileReader(jsonPath).readText())
+                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(FileReader(jsonPath).use { it.readText() })
                 whitelistedPlayers.clear()
                 whitelistedPlayers.addAll(list)
             } catch (e: Throwable) {
@@ -44,8 +44,9 @@ object Whitelist {
     }
 
     fun write() {
+        Logger.debug("Storing whitelist")
         BufferedWriter(FileWriter(jsonPath)).use {
-            it.write(JsonUtils.cleanJson(JsonUtils.prettyJson.encodeToString(whitelistedPlayers)))
+            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
         }
     }
 
@@ -103,7 +104,6 @@ object Whitelist {
     fun Player.kickIfNotWhitelisted(): Boolean {
         if (!this.isOp && !this.isWhitelisted) {
             kick(Component.translatable("multiplayer.disconnect.not_whitelisted"))
-            Logger.info("Disconnecting $username (${playerConnection.remoteAddress}): You are not white-listed on this server!")
             return true
         }
         return false

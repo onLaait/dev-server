@@ -4,10 +4,12 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 object JsonUtils {
-    val prettyJson = Json {
+    @OptIn(ExperimentalSerializationApi::class)
+    val json = Json {
         prettyPrint = true
-        @OptIn(ExperimentalSerializationApi::class)
         prettyPrintIndent = "  "
+        isLenient = true
+        ignoreUnknownKeys = true
     }
 
     fun cleanJson(value: String): String = if (value == "[\n]") "[]" else value

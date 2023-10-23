@@ -6,7 +6,6 @@ import com.github.laaitq.fbw.utils.JsonUtils
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.ConsoleSender
 import net.minestom.server.entity.Player
@@ -28,9 +27,10 @@ object OpSystem {
     }
 
     fun read() {
+        Logger.debug("Loading ops")
         if (File(jsonPath).exists()) {
             try {
-                opPlayersData.addAll(Json.decodeFromString(FileReader(jsonPath).readText()))
+                opPlayersData.addAll(JsonUtils.json.decodeFromString(FileReader(jsonPath).use { it.readText() }))
             } catch (e: IllegalArgumentException) {
                 Logger.warn("Something is wrong with the format of '${jsonPath}', initializing it")
             }
@@ -42,8 +42,9 @@ object OpSystem {
     }
 
     fun write() {
+        Logger.debug("Storing ops")
         BufferedWriter(FileWriter(jsonPath)).use {
-            it.write(JsonUtils.cleanJson(JsonUtils.prettyJson.encodeToString(opPlayersData)))
+            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayersData)))
         }
     }
 

@@ -6,9 +6,12 @@ import com.github.laaitq.fbw.system.PlayerData.playerdata
 import com.github.laaitq.fbw.system.ServerStatus.sendTabList
 import com.github.laaitq.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.laaitq.fbw.utils.AudienceUtils.broadcast
+import com.github.laaitq.fbw.utils.ComponentUtils.plainText
+import com.github.laaitq.fbw.utils.ComponentUtils.render
+import com.github.laaitq.fbw.utils.PlayerUtils
+import com.github.laaitq.fbw.utils.ServerUtils
 import com.github.laaitq.fbw.utils.TextUtils
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.coordinate.Pos
@@ -22,52 +25,36 @@ import net.minestom.server.event.server.ServerListPingEvent
 import net.minestom.server.event.server.ServerTickMonitorEvent
 import net.minestom.server.network.packet.client.play.ClientChatSessionUpdatePacket
 import net.minestom.server.network.packet.client.play.ClientSetRecipeBookStatePacket
+import net.minestom.server.network.packet.server.login.LoginDisconnectPacket
+import net.minestom.server.network.packet.server.play.DisconnectPacket
 import net.minestom.server.ping.ResponseData
 import net.minestom.server.timer.TaskSchedule
-import java.awt.Image
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.util.*
-import javax.imageio.ImageIO
 
 
-object Listener {
+object Event {
     init {
         val event = MinecraftServer.getGlobalEventHandler()
+        MinecraftServer.getPacketListenerManager()
         val packet = MinecraftServer.getPacketListenerManager()
 
-        val responseData = ResponseData().apply {
-            description = LegacyComponentSerializer.legacySection().deserialize(ServerProperties.MOTD)
-            maxPlayer = ServerProperties.MAX_PLAYERS
-            File("server-icon.png").let { file ->
-                val inputStream = if (file.exists()) {
-                    file.inputStream()
-                } else {
-                    this.javaClass.classLoader.getResourceAsStream("server-icon.png")!!
-                }
-                val img = ImageIO.read(inputStream).getScaledInstance(64, 64, Image.SCALE_SMOOTH)
-                val bufferedImg = BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB)
-                bufferedImg.graphics.run {
-                    drawImage(img, 0, 0, null)
-                    dispose()
-                }
-                val base64Str = ByteArrayOutputStream().use { outputStream ->
-                    ImageIO.write(bufferedImg, "png", outputStream)
-                    Base64.getEncoder().encodeToString(outputStream.toByteArray())
-                }
-                favicon = "data:image/png;base64,$base64Str"
+        event.addListener(ServerListPingEvent::class.java) { e ->
+            if (!ServerProperties.ENABLE_STATUS) {
+                e.isCancelled = true
+                return@addListener
             }
+            e.responseData = ServerUtils.responseData
         }
-
-        event.addListener(ServerListPingEvent::class.java) { e -> e.responseData = responseData }
 
         event.addListener(AsyncPlayerPreLoginEvent::class.java) { e ->
             val player = e.player
             if (player is FakePlayer) return@addListener
             Logger.info("UUID of player ${player.username} is ${player.uuid}")
+
             if (OpSystem.opPlayersData.find { it.uuid == player.uuid } != null) {
                 player.addPermission(OpSystem.opPermission)
+            } else if (ServerProperties.MAX_PLAYERS <= PlayerUtils.onlinePlayersCount) {
+                player.kick(Component.translatable("multiplayer.disconnect.server_full"))
             } else if (ServerProperties.WHITE_LIST) {
                 player.kickIfNotWhitelisted()
             }
@@ -77,27 +64,25 @@ object Listener {
         event.addListener(PlayerLoginEvent::class.java) { e ->
             val player = e.player
             if (player is FakePlayer) return@addListener
-            Logger.info("${player.username}[${player.playerConnection.remoteAddress}] logged in")
+            Logger.info("${player.username}[${player.playerConnection.remoteAddress}] logged in with (entityId=${player.entityId},serverAddress=${player.playerConnection.serverAddress},locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
             e.setSpawningInstance(Instance.instance)
             player.respawnPoint = Pos(0.5, 1.0, 0.5)
-            player.refreshLatency(0)
             player.playerdata.let {
                 if (it.lastKnownName != player.username) {
                     it.lastKnownName = player.username
                     PlayerData.write(player)
                 }
             }
-            responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
-            responseData.refreshEntries()
+            ServerUtils.responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
+            ServerUtils.responseData.refreshEntries()
             Audiences.players().sendTabList()
             broadcast(TextUtils.formatText("<green><bold>●</bold><white> ${player.username}"))
 
             FakePlayer.initPlayer(UUID.randomUUID(), player.username) { fakePlayer ->
                 fakePlayer.displayName = Component.text("${player.username}'s Shadow")
                 fakePlayer.setNoGravity(true)
-                fakePlayer.updateViewableRule { viewer ->
-                    viewer != player
-                }
+                fakePlayer.updateViewableRule { viewer -> viewer != player }
+
                 event.addListener(PlayerMoveEvent::class.java) a@{ e ->
                     if (e.player != player) return@a
                     fakePlayer.refreshPosition(e.newPosition.add(0.0, 2.0, 0.0))
@@ -142,9 +127,9 @@ object Listener {
         event.addListener(PlayerDisconnectEvent::class.java) { e ->
             val player = e.player
             if (player is FakePlayer) return@addListener
+            ServerUtils.responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
+            ServerUtils.responseData.refreshEntries()
             Logger.info("${player.username} lost connection")
-            responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
-            responseData.refreshEntries()
             broadcast(TextUtils.formatText("<gray><bold>●</bold><white> ${player.username}"))
         }
 
@@ -158,30 +143,6 @@ object Listener {
         event.addListener(PlayerCommandEvent::class.java) { e ->
             Logger.info("${e.player.username} issued server command: /${e.command}")
         }
-
-        /*var javaClass: String
-        globalEvent.addListener(PlayerPacketEvent::class.java) { e ->
-            javaClass = e.packet.javaClass.name.toString()
-            if (javaClass != "net.minestom.server.network.packet.client.play.ClientPlayerPositionPacket"
-                && javaClass != "net.minestom.server.network.packet.client.play.ClientPlayerRotationPacket"
-                && javaClass != "net.minestom.server.network.packet.client.play.ClientKeepAlivePacket"
-                && javaClass != "net.minestom.server.network.packet.client.play.ClientPlayerPositionAndRotationPacket") {
-                val player: Player = e.player
-                println(e.packet)
-            }
-        }
-
-        event.addListener(PlayerPacketOutEvent::class.java) { e ->
-            val javaClass = e.packet.javaClass.name.toString()
-            if (javaClass != "net.minestom.server.network.packet.server.play.PlayerListHeaderAndFooterPacket"
-                && javaClass != "net.minestom.server.network.packet.server.play.UnloadChunkPacket"
-                && javaClass != "net.minestom.server.network.packet.server.play.KeepAlivePacket"
-                && javaClass != "net.minestom.server.network.packet.server.play.ChunkDataPacket"
-                && javaClass != "net.minestom.server.network.packet.server.play.PlayerInfoPacket"
-                && javaClass != "net.minestom.server.network.packet.server.play.TimeUpdatePacket") {
-                println("<- ${e.packet}")
-            }
-        }*/
 
         event.addListener(PlayerHandAnimationEvent::class.java) { e ->
             MinecraftServer.getCommandManager().execute(e.player, "test ray")
@@ -201,6 +162,19 @@ object Listener {
             }
         }
 
+        event.addListener(PlayerPluginMessageEvent::class.java) { e ->
+            if (e.identifier != "minecraft:brand") return@addListener
+            val brand = e.messageString.let {
+                if (!it.first().isLetter()) it.substring(1) else it
+            }
+            Logger.debug("${e.player.username} is using client '$brand'")
+        }
+
+        event.addListener(PlayerSettingsChangeEvent::class.java) { e ->
+            val player = e.player
+            Logger.debug("${player.username} (locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
+        }
+
         event.addListener(PlayerDeathEvent::class.java) { e ->
             e.chatMessage = null
             e.deathText = null
@@ -212,10 +186,30 @@ object Listener {
 
         packet.setListener(ClientSetRecipeBookStatePacket::class.java) { _, _ -> }
         packet.setListener(ClientChatSessionUpdatePacket::class.java) { _, _ -> }
+
+        event.addListener(PlayerPacketEvent::class.java) { e ->
+//            println("-> ${e.packet}")
+        }
+
+        event.addListener(PlayerPacketOutEvent::class.java) { e ->
+//            println("<- ${e.packet}")
+            fun disconnectInfo(kickMessage: Component) {
+                Logger.info("Disconnecting ${e.player.username} (${e.player.playerConnection.remoteAddress}): ${kickMessage.render().plainText()}")
+            }
+            when (val packet = e.packet) {
+                is DisconnectPacket -> {
+                    disconnectInfo(packet.message)
+                }
+                is LoginDisconnectPacket -> {
+                    disconnectInfo(packet.kickMessage)
+                }
+            }
+        }
     }
 
     private fun ResponseData.refreshEntries() {
-        clearEntries()
-        addEntries(MinecraftServer.getConnectionManager().onlinePlayers)
+        if (ServerProperties.HIDE_ONLINE_PLAYERS) return
+        this.clearEntries()
+        this.addEntries(MinecraftServer.getConnectionManager().onlinePlayers)
     }
 }

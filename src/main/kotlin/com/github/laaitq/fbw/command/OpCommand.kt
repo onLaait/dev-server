@@ -25,7 +25,7 @@ object OpCommand : Command("op") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(usage("${context.commandName} <플레이어>"))
+            sender.sendMsg(usage("${context.commandName} <대상>"))
         }
 
         val argPlayer = ArgumentEntity("플레이어")

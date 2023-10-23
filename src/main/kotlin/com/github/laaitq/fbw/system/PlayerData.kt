@@ -22,13 +22,15 @@ object PlayerData {
     }
 
     fun read() {
+        Logger.debug("Loading player data")
         val yamls = dir.listFiles()
         for (yaml in yamls!!) if (yaml.isFile) {
-            playersData[UUID.fromString(yaml.nameWithoutExtension)] = Yaml.default.decodeFromString(FileReader(yaml).readText())
+            playersData[UUID.fromString(yaml.nameWithoutExtension)] = Yaml.default.decodeFromString(FileReader(yaml).use { it.readText() })
         }
     }
 
     fun write(player: Player) {
+        Logger.debug("Storing player data of ${player.username}")
         BufferedWriter(FileWriter(path + player.uuid + ".yml")).use {
             it.write(Yaml.default.encodeToString(player.playerdata))
         }

@@ -3,10 +3,11 @@ package com.github.laaitq.fbw.system
 import com.github.laaitq.fbw.serializer.UUIDAsStringSerializer
 import com.github.laaitq.fbw.utils.IterableUtils.removeSingle
 import com.github.laaitq.fbw.utils.JsonUtils
+import com.github.laaitq.fbw.utils.PlayerUtils
+import com.github.laaitq.fbw.utils.PlayerUtils.ipAddress
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslatableComponent
 import net.minestom.server.entity.Player
@@ -17,8 +18,10 @@ import java.io.FileWriter
 import java.util.*
 
 object BanSystem {
-    private const val jsonPath = "banned-players.json"
+    private const val playersFilePath = "banned-players.json"
+    private const val ipsFilePath = "banned-ips.json"
     val bannedPlayers = mutableSetOf<BannedPlayer>()
+    val bannedIps = mutableSetOf<BannedIp>()
 
     init {
         read()
@@ -26,22 +29,40 @@ object BanSystem {
     }
 
     fun read() {
-        if (File(jsonPath).exists()) {
+        Logger.debug("Loading banned players and ips")
+        if (File(playersFilePath).exists()) {
             try {
-                bannedPlayers.addAll(Json.decodeFromString(FileReader(jsonPath).readText()))
+                bannedPlayers.addAll(JsonUtils.json.decodeFromString(FileReader(playersFilePath).use { it.readText() }))
             } catch (e: IllegalArgumentException) {
-                Logger.error("Something is wrong with the format of '$jsonPath', initializing it")
+                Logger.error("Something is wrong with the format of '$playersFilePath', initializing it")
             }
         } else {
-            BufferedWriter(FileWriter(jsonPath)).use {
+            BufferedWriter(FileWriter(playersFilePath)).use {
+                it.write("[]")
+            }
+        }
+
+        if (File(ipsFilePath).exists()) {
+            try {
+                bannedIps.addAll(JsonUtils.json.decodeFromString(FileReader(ipsFilePath).use { it.readText() }))
+            } catch (e: IllegalArgumentException) {
+                Logger.error("Something is wrong with the format of '$ipsFilePath', initializing it")
+            }
+        } else {
+            BufferedWriter(FileWriter(ipsFilePath)).use {
                 it.write("[]")
             }
         }
     }
 
     fun write() {
-        BufferedWriter(FileWriter(jsonPath)).use {
-            it.write(JsonUtils.cleanJson(JsonUtils.prettyJson.encodeToString(bannedPlayers)))
+        Logger.debug("Storing banned players and ips")
+        BufferedWriter(FileWriter(playersFilePath)).use {
+            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers)))
+        }
+
+        BufferedWriter(FileWriter(ipsFilePath)).use {
+            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps)))
         }
     }
 
@@ -53,16 +74,27 @@ object BanSystem {
         val reason: String?
     )
 
-    fun Player.ban() {
-        kick(getBanMessage(null))
-        bannedPlayers.add(BannedPlayer(uuid, username, null))
-        write()
-    }
+    @Serializable
+    data class BannedIp(
+        val ip: String,
+        val reason: String?
+    )
 
     fun Player.ban(reason: String?) {
         kick(getBanMessage(reason))
         bannedPlayers.add(BannedPlayer(uuid, username, reason))
         write()
+    }
+
+    fun banIp(ip: String, reason: String?): List<Player>? {
+        if (bannedIps.find { it.ip == ip } != null) return null
+        bannedIps.add(BannedIp(ip, reason))
+        val targets = PlayerUtils.allPlayers.filter { it.ipAddress == ip }
+        targets.forEach { player ->
+            player.kick(getBanMessage(reason))
+        }
+        write()
+        return targets
     }
 
     fun pardon(username: String): Boolean {
@@ -81,17 +113,22 @@ object BanSystem {
         return removed
     }
 
+    fun pardonIp(ip: String): Boolean {
+        val removed = bannedIps.removeSingle { it.ip == ip }
+        if (removed) write()
+        return removed
+    }
+
     fun Player.kickIfBanned(): Boolean {
         for (e in bannedPlayers) {
             if (e.uuid == uuid) {
                 kick(getBanMessage(e.reason))
-                Logger.info("Disconnecting $username (${playerConnection.remoteAddress}): " +
-                        if (e.reason == null) {
-                            "You are banned from this server"
-                        } else {
-                            "You are banned from this server.\nReason: ${e.reason}"
-                        }
-                )
+                return true
+            }
+        }
+        for (e in bannedIps) {
+            if (e.ip == ipAddress) {
+                kick(getBanMessage(e.reason))
                 return true
             }
         }

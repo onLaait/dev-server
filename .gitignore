@@ -1,13 +1,12 @@
 # 프로젝트 제외 경로
 /.gradle/
 /build/
-/build/classes/java/main/
-/build/classes/kotlin/test/
 /out/
 /.idea/
+/src/test/
 /logs/
 /playerdata/
-/src/test/
+/banned-ips.json
 /banned-players.json
 /ops.json
 /server.properties

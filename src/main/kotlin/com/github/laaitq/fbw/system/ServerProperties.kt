@@ -20,7 +20,7 @@ object ServerProperties {
     var ENABLE_STATUS: Boolean by Property(true)
     var HIDE_ONLINE_PLAYERS: Boolean by Property(false)
     var NETWORK_COMPRESSION_THRESHOLD: Int by Property(256)
-    var VIEW_DISTANCE: Int by Property(10)
+    var VIEW_DISTANCE: Int by Property(16)
     var SERVER_IP: String by Property("")
     var SERVER_PORT: Int by Property(25565)
     var REQUIRE_RESOURCE_PACK: Boolean by Property(true)
@@ -33,7 +33,7 @@ object ServerProperties {
     init {
         Logger.info("Loading properties")
         val properties = Properties()
-        if (!Info.file.createNewFile()) properties.load(FileReader(Info.file))
+        if (!Info.file.createNewFile()) FileReader(Info.file).use { properties.load(it) }
 
         MOTD = properties.getProperty("motd") ?: MOTD
         MAX_PLAYERS = (properties.getProperty("max-players") ?: "").toIntOrNull() ?: MAX_PLAYERS
@@ -55,14 +55,16 @@ object ServerProperties {
     }
 
     fun write() {
-        Logger.debug("Writing properties")
+        Logger.debug("Storing properties")
         val newProperties = Properties()
         for (field in ServerProperties.javaClass.kotlin.declaredMemberProperties) {
             if (field.name == "INSTANCE") continue
             val name = field.name.lowercase().replace('_', '-')
             newProperties.setProperty(name, field.get(this).toString())
         }
-        newProperties.store(FileWriter(Info.file), "FantasyBattleWorld server properties")
+        FileWriter(Info.file).use {
+            newProperties.store(it, "FantasyBattleWorld server properties")
+        }
     }
 
     private class Property<T>(initVal: T) : ReadWriteProperty<Any?, T> {

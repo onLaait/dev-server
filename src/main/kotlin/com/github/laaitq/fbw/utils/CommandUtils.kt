@@ -5,14 +5,11 @@ import com.github.laaitq.fbw.utils.AudienceUtils.sendMsg
 import com.github.laaitq.fbw.utils.TextUtils.YELLOW_QUESTION_MARK
 import com.github.laaitq.fbw.utils.TextUtils.formatText
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import net.minestom.server.command.CommandSender
 import net.minestom.server.entity.Player
 
 object CommandUtils {
     private val messageNoPermission = formatText("${TextUtils.RED_EXCLAMATION_MARK}<white> 권한이 없습니다.")
-
-    fun Component.plainText() = PlainTextComponentSerializer.plainText().serialize(this)
 
     fun warnIfNotOp(sender: CommandSender): Boolean {
         return if (sender is Player && !sender.isOp) {

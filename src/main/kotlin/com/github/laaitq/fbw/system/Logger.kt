@@ -1,6 +1,6 @@
 package com.github.laaitq.fbw.system
 
-import com.github.laaitq.fbw.utils.CommandUtils.plainText
+import com.github.laaitq.fbw.utils.ComponentUtils.plainText
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.logger.slf4j.ComponentLogger
 import org.slf4j.LoggerFactory

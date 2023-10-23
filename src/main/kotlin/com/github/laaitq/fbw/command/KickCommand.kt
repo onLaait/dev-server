@@ -16,7 +16,7 @@ object KickCommand : Command("kick") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(CommandUtils.usage("${context.commandName} <플레이어> [사유]"))
+            sender.sendMsg(CommandUtils.usage("${context.commandName} <대상> [사유]"))
         }
 
         val argPlayer = ArgumentEntity("플레이어")

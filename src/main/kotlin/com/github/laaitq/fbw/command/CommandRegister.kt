@@ -13,11 +13,16 @@ object CommandRegister {
                 }
             }
             register(BanCommand)
+            register(BanipCommand)
+            register(BanlistCommand)
+            register(BroadcastCommand)
             register(DeopCommand)
             register(GamemodeCommand)
             register(KickCommand)
+            register(MaxplayersCommand)
             register(OpCommand)
             register(PardonCommand)
+            register(PardonipCommand)
             register(StopCommand)
             register(TestCommand)
             register(WhitelistCommand)

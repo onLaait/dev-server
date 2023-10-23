@@ -27,7 +27,7 @@ object BanCommand : Command("ban") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(usage("${context.commandName} <플레이어> [사유]"))
+            sender.sendMsg(usage("${context.commandName} <대상> [사유]"))
         }
 
         val argPlayer = ArgumentEntity("플레이어")
@@ -36,7 +36,7 @@ object BanCommand : Command("ban") {
 
         fun banTask(sender: CommandSender, context: CommandContext) {
             val players = context[argPlayer].find(sender).filterIsInstance<Player>()
-            val reason = if (context[argReason] == null) null else context[argReason]
+            val reason = context[argReason]
             if (players.isNotEmpty()) {
                 players.forEach { player ->
                     player.ban(reason)
