@@ -17,6 +17,7 @@ object PardonCommand : Command("pardon", "unban") {
     init {
         val MSG_SUCCESS = "%s의 차단을 해제했습니다."
         val MSG_FAILED = "해당 플레이어는 차단되어 있지 않습니다."
+        val MSG_PLAYER_NOTFOUND = "플레이어를 찾을 수 없습니다."
         val MSG_PLAYER_UNKNOWN = "해당 플레이어는 존재하지 않습니다."
 
         setCondition { sender, _ -> sender.isOp }
@@ -25,7 +26,7 @@ object PardonCommand : Command("pardon", "unban") {
             sender.sendMsg(usage("${context.commandName} <대상> [사유]"))
         }
 
-        val argPlayer = ArgumentString("플레이어")
+        val argTarget = ArgumentString("대상")
             .setSuggestionCallback { _, _, suggestion ->
                 BanSystem.bannedPlayers.forEach { suggestion.addEntry(SuggestionEntry(it.name)) }
             }
@@ -33,19 +34,23 @@ object PardonCommand : Command("pardon", "unban") {
         addSyntax({ sender, context ->
             thread {
                 run {
-                    val find = BanSystem.bannedPlayers.find { it.name == context[argPlayer] }
-                        ?: BanSystem.bannedPlayers.find { it.name.equals(context[argPlayer], ignoreCase = true) }
+                    val find = BanSystem.bannedPlayers.find { it.name == context[argTarget] }
+                        ?: BanSystem.bannedPlayers.find { it.name.equals(context[argTarget], ignoreCase = true) }
                     if (find != null) {
+                        if (context.getRaw(argTarget)[0] == '@') {
+                            sender.warnMsg(MSG_PLAYER_NOTFOUND)
+                            return@thread
+                        }
                         val currentName = MojangUtils.fromUuid(find.uuid.toString())?.get("name")?.asString
                         BanSystem.run {
                             bannedPlayers.remove(find)
-                            write()
+                            writePlayers()
                         }
                         sender.alertMsg(String.format(MSG_SUCCESS, currentName))
                         return@thread
                     }
                 }
-                val user = MojangUtils.fromUsername(context[argPlayer])
+                val user = MojangUtils.fromUsername(context[argTarget])
                 if (user == null) {
                     sender.warnMsg(MSG_PLAYER_UNKNOWN)
                     return@thread
@@ -57,6 +62,6 @@ object PardonCommand : Command("pardon", "unban") {
                 }
                 sender.alertMsg(String.format(MSG_SUCCESS, user["name"].asString))
             }
-        }, argPlayer)
+        }, argTarget)
     }
 }

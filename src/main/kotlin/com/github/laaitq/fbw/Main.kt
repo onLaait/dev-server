@@ -45,6 +45,9 @@ object Main {
         Logger.info("Starting Minecraft server on ${ip.ifBlank { "*" }}:$port")
         minecraftServer.start(ip.ifBlank { "0.0.0.0" }, port)
 
+
+        MinecraftServer.getConnectionManager().setPlayerProvider { uuid, username, connection -> PlayerP(uuid, username, connection) }
+
         PlayerData
         BanSystem
         OpSystem
@@ -58,6 +61,7 @@ object Main {
         MinecraftServer.getSchedulerManager().buildShutdownTask {
             Logger.info("Stopping server")
             val closeMessage = Component.translatable("multiplayer.disconnect.server_shutdown")
+            PlayerData.writeAllPlayers()
             PlayerUtils.allPlayers.forEach { player ->
                 player.kick(closeMessage)
             }

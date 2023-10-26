@@ -2,6 +2,7 @@ package com.github.laaitq.fbw.utils
 
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.time.Duration
 
 object StringUtils {
 
@@ -29,4 +30,23 @@ object StringUtils {
     private val ipv4Pattern: Pattern = Pattern.compile("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$")
 
     fun isIPv4Address(str: String): Boolean = ipv4Pattern.matcher(str).matches()
+
+    fun Duration.formattedString(): String {
+        val str = mutableListOf<String>()
+        this.toComponents { days, hours, minutes, seconds, _ ->
+            if (days != 0L) {
+                str += "${days}일"
+            }
+            if (hours != 0) {
+                str += "${hours}시간"
+            }
+            if (minutes != 0) {
+                str += "${minutes}분"
+            }
+            if (seconds != 0) {
+                str += "${seconds}초"
+            }
+        }
+        return str.joinToString(" ")
+    }
 }

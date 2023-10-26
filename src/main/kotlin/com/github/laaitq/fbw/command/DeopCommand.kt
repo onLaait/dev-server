@@ -28,14 +28,14 @@ object DeopCommand : Command("deop") {
             sender.sendMsg(usage("${context.commandName} <대상>"))
         }
 
-        val argPlayer = ArgumentEntity("플레이어")
+        val argTarget = ArgumentEntity("대상")
             .onlyPlayers(true)
             .setSuggestionCallback { _, _, suggestion ->
-                OpSystem.opPlayersData.forEach { suggestion.addEntry(SuggestionEntry(it.name)) }
+                OpSystem.opPlayers.forEach { suggestion.addEntry(SuggestionEntry(it.name)) }
             }
 
         addSyntax({ sender, context ->
-            val players = context[argPlayer].find(sender).filterIsInstance<Player>()
+            val players = context[argTarget].find(sender).filterIsInstance<Player>()
             if (players.isNotEmpty()) {
                 var successOnce = false
                 players.filter { it.setOp(false) }.forEach { player ->
@@ -46,12 +46,12 @@ object DeopCommand : Command("deop") {
                 return@addSyntax
             }
             thread {
-                val user = MojangUtils.fromUsername(context.getRaw(argPlayer))
+                val user = MojangUtils.fromUsername(context.getRaw(argTarget))
                 if (user == null) {
                     sender.warnMsg(MSG_PLAYER_UNKNOWN)
                     return@thread
                 }
-                val removed = OpSystem.opPlayersData.removeSingle { it.uuid == user["id"].asString.toUUID() }
+                val removed = OpSystem.opPlayers.removeSingle { it.uuid == user["id"].asString.toUUID() }
                 if (!removed) {
                     sender.warnMsg(MSG_FAILED)
                     return@thread
@@ -59,6 +59,6 @@ object DeopCommand : Command("deop") {
                 OpSystem.write()
                 sender.alertMsg(String.format(MSG_SUCCESS, user["name"].asString))
             }
-        }, argPlayer)
+        }, argTarget)
     }
 }

@@ -8,24 +8,36 @@ object CommandRegister {
     init {
         MinecraftServer.getCommandManager().run {
             unknownCommandCallback = CommandCallback { sender, command ->
-                if (command != "") {
+                if (command.isNotBlank()) {
                     sender.warnMsg("알 수 없는 명령어입니다.")
                 }
             }
-            register(BanCommand)
-            register(BanipCommand)
-            register(BanlistCommand)
-            register(BroadcastCommand)
-            register(DeopCommand)
-            register(GamemodeCommand)
-            register(KickCommand)
-            register(MaxplayersCommand)
-            register(OpCommand)
-            register(PardonCommand)
-            register(PardonipCommand)
-            register(StopCommand)
-            register(TestCommand)
-            register(WhitelistCommand)
+
+            arrayOf(
+                BanCommand,
+                BanipCommand,
+                BanlistCommand,
+                BroadcastCommand,
+                DeopCommand,
+                GamemodeCommand,
+                InfoCommand,
+                KickCommand,
+                ListCommand,
+                MaxplayersCommand,
+                MotdCommand,
+                MuteCommand,
+                OpCommand,
+                PardonCommand,
+                PardonipCommand,
+                PlaysoundCommand,
+                StatusCommand,
+                StopCommand,
+                TestCommand,
+                UnmuteCommand,
+                WhitelistCommand,
+            ).forEach {
+                register(it)
+            }
         }
     }
 }

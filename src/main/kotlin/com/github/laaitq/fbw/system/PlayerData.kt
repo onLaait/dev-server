@@ -1,53 +1,45 @@
 package com.github.laaitq.fbw.system
 
 import com.charleskorn.kaml.Yaml
+import com.github.laaitq.fbw.utils.PlayerUtils
+import com.github.laaitq.fbw.utils.PlayerUtils.data
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.minestom.server.entity.Player
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
-import java.util.*
 
 object PlayerData {
-    private const val path = "./playerdata/"
-    private val dir = File(path)
-    val playersData = hashMapOf<UUID, PlayerData>()
+
+    private const val dir = "playerdata"
 
     init {
-        dir.mkdir()
-        read()
+        File(dir).mkdir()
     }
 
-    fun read() {
-        Logger.debug("Loading player data")
-        val yamls = dir.listFiles()
-        for (yaml in yamls!!) if (yaml.isFile) {
-            playersData[UUID.fromString(yaml.nameWithoutExtension)] = Yaml.default.decodeFromString(FileReader(yaml).use { it.readText() })
+    private fun getFile(player: Player): File = File(dir + '/' + player.uuid + ".yml")
+
+    fun read(player: Player): PlayerData {
+        Logger.debug("Loading player data of ${player.username}")
+        val file = getFile(player)
+        return if (file.isFile) {
+            Yaml.default.decodeFromString(file.readText())
+        } else {
+            PlayerData(player.username)
         }
     }
 
     fun write(player: Player) {
         Logger.debug("Storing player data of ${player.username}")
-        BufferedWriter(FileWriter(path + player.uuid + ".yml")).use {
-            it.write(Yaml.default.encodeToString(player.playerdata))
-        }
+        getFile(player).writeText(Yaml.default.encodeToString(player.data))
     }
 
-    val Player.playerdata: PlayerData
-        get() {
-            if (!playersData.containsKey(uuid)) {
-                playersData[uuid] = PlayerData(username, true)
-                write(this)
-            }
-            return playersData[uuid]!!
-        }
+    fun writeAllPlayers() = PlayerUtils.allPlayers.forEach { write(it) }
 
     @Serializable
     data class PlayerData(
         var lastKnownName: String,
-        var isParticipant: Boolean = true
+        var muteTime: Long? = null,
+        var isParticipant: Boolean = true,
     )
 }

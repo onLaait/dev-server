@@ -33,6 +33,7 @@ object WhitelistCommand : Command("whitelist") {
         val MSG_LIST = "화이트리스트에 플레이어가 %s명 있습니다: %s"
         val MSG_NONE = "화이트리스트에 플레이어가 없습니다."
         val MSG_RELOADED = "화이트리스트를 새로 고쳤습니다."
+        val MSG_PLAYER_NOTFOUND = "플레이어를 찾을 수 없습니다."
         val MSG_PLAYER_UNKNOWN = "해당 플레이어는 존재하지 않습니다."
 
         setCondition { sender, _ -> sender.isOp }
@@ -97,6 +98,10 @@ object WhitelistCommand : Command("whitelist") {
                 if (!successOnce) sender.warnMsg(MSG_ADD_FAILED)
                 return@addSyntax
             }
+            if (context.getRaw(argAddPlayer)[0] == '@') {
+                sender.warnMsg(MSG_PLAYER_NOTFOUND)
+                return@addSyntax
+            }
             thread {
                 val user = MojangUtils.fromUsername(context.getRaw(argAddPlayer))
                 if (user == null) {
@@ -123,6 +128,10 @@ object WhitelistCommand : Command("whitelist") {
                     sender.alertMsg(String.format(MSG_REMOVE_SUCCESS, player.username))
                 }
                 if (!successOnce) sender.warnMsg(MSG_REMOVE_FAILED)
+                return@addSyntax
+            }
+            if (context.getRaw(argRemovePlayer)[0] == '@') {
+                sender.warnMsg(MSG_PLAYER_NOTFOUND)
                 return@addSyntax
             }
             thread {

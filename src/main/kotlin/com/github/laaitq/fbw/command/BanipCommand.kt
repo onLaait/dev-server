@@ -1,6 +1,7 @@
 package com.github.laaitq.fbw.command
 
 import com.github.laaitq.fbw.command.argument.ArgumentText
+import com.github.laaitq.fbw.command.argument.ArgumentUsername
 import com.github.laaitq.fbw.system.BanSystem.banIp
 import com.github.laaitq.fbw.system.OpSystem.isOp
 import com.github.laaitq.fbw.utils.AudienceUtils.alertMsg
@@ -13,9 +14,6 @@ import com.github.laaitq.fbw.utils.StringUtils
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.CommandContext
-import net.minestom.server.command.builder.arguments.ArgumentString
-import net.minestom.server.command.builder.suggestion.SuggestionEntry
-
 
 object BanipCommand : Command("ban-ip") {
     init {
@@ -31,10 +29,8 @@ object BanipCommand : Command("ban-ip") {
             sender.sendMsg(usage("${context.commandName} <대상> [사유]"))
         }
 
-        val argTarget = ArgumentString("대상")
-            .setSuggestionCallback { _, _, suggestion ->
-                PlayerUtils.allPlayers.forEach { suggestion.addEntry(SuggestionEntry(it.username)) }
-            }
+        val argTarget = ArgumentUsername("대상")
+            .strict(false)
         val argReason = ArgumentText("사유")
 
         fun banipTask(sender: CommandSender, context: CommandContext) {

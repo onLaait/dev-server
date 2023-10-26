@@ -22,6 +22,7 @@ object BanCommand : Command("ban") {
         val MSG_SUCCESS = "%s을(를) 서버에서 차단했습니다."
         val MSG_SUCCESS_REASON = "%s을(를) 서버에서 차단했습니다. (사유: %s)"
         val MSG_FAILED = "해당 플레이어는 이미 차단되어 있습니다."
+        val MSG_PLAYER_NOTFOUND = "플레이어를 찾을 수 없습니다."
         val MSG_PLAYER_UNKNOWN = "해당 플레이어는 존재하지 않습니다."
 
         setCondition { sender, _ -> sender.isOp }
@@ -50,6 +51,10 @@ object BanCommand : Command("ban") {
                 }
                 return
             }
+            if (context.getRaw(argPlayer)[0] == '@') {
+                sender.warnMsg(MSG_PLAYER_NOTFOUND)
+                return
+            }
             thread {
                 val user = MojangUtils.fromUsername(context.getRaw(argPlayer))
                 if (user == null) {
@@ -64,7 +69,7 @@ object BanCommand : Command("ban") {
                 val name = user["name"].asString
                 BanSystem.run {
                     bannedPlayers.add(BanSystem.BannedPlayer(uuid, name, reason))
-                    write()
+                    writePlayers()
                 }
                 if (reason == null) {
                     sender.alertMsg(String.format(MSG_SUCCESS, name))

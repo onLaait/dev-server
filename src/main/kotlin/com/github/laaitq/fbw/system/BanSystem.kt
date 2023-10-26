@@ -25,11 +25,12 @@ object BanSystem {
 
     init {
         read()
-        write()
+        writePlayers()
+        writeIps()
     }
 
     fun read() {
-        Logger.debug("Loading banned players and ips")
+        Logger.debug("Loading banned players")
         if (File(playersFilePath).exists()) {
             try {
                 bannedPlayers.addAll(JsonUtils.json.decodeFromString(FileReader(playersFilePath).use { it.readText() }))
@@ -42,6 +43,7 @@ object BanSystem {
             }
         }
 
+        Logger.debug("Loading banned ips")
         if (File(ipsFilePath).exists()) {
             try {
                 bannedIps.addAll(JsonUtils.json.decodeFromString(FileReader(ipsFilePath).use { it.readText() }))
@@ -55,12 +57,15 @@ object BanSystem {
         }
     }
 
-    fun write() {
-        Logger.debug("Storing banned players and ips")
+    fun writePlayers() {
+        Logger.debug("Storing banned players")
         BufferedWriter(FileWriter(playersFilePath)).use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers)))
         }
+    }
 
+    fun writeIps() {
+        Logger.debug("Storing banned ips")
         BufferedWriter(FileWriter(ipsFilePath)).use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps)))
         }
@@ -83,7 +88,7 @@ object BanSystem {
     fun Player.ban(reason: String?) {
         kick(getBanMessage(reason))
         bannedPlayers.add(BannedPlayer(uuid, username, reason))
-        write()
+        writePlayers()
     }
 
     fun banIp(ip: String, reason: String?): List<Player>? {
@@ -93,7 +98,7 @@ object BanSystem {
         targets.forEach { player ->
             player.kick(getBanMessage(reason))
         }
-        write()
+        writeIps()
         return targets
     }
 
@@ -103,19 +108,19 @@ object BanSystem {
         } else {
             bannedPlayers.removeSingle { it.name.equals(username, ignoreCase = true) }
         }
-        if (removed) write()
+        if (removed) writePlayers()
         return removed
     }
 
     fun pardon(uuid: UUID): Boolean {
         val removed = bannedPlayers.removeSingle { it.uuid == uuid }
-        if (removed) write()
+        if (removed) writePlayers()
         return removed
     }
 
     fun pardonIp(ip: String): Boolean {
         val removed = bannedIps.removeSingle { it.ip == ip }
-        if (removed) write()
+        if (removed) writeIps()
         return removed
     }
 

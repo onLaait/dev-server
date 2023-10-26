@@ -45,9 +45,9 @@ object AudienceUtils {
 
     fun Audience.sendMsg(vararg messages: Component) {
         val message = Component.text().apply {
-            for ((i, component) in messages.withIndex()) {
+            messages.forEachIndexed { i, component ->
                 it.append(component)
-                if (i != messages.size) it.appendNewline()
+                if (i != messages.size-1) it.appendNewline()
             }
         }.build()
 
@@ -60,9 +60,9 @@ object AudienceUtils {
 
     fun Audience.sendMsg(messages: Collection<Component>) {
         val message = Component.text().apply {
-            for ((i, component) in messages.withIndex()) {
+            messages.forEachIndexed { i, component ->
                 it.append(component)
-                if (i != messages.size) it.appendNewline()
+                if (i != messages.size-1) it.appendNewline()
             }
         }.build()
 

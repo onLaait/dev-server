@@ -2,10 +2,12 @@ package com.github.laaitq.fbw.system
 
 import com.github.laaitq.fbw.utils.PlayerUtils
 import com.github.laaitq.fbw.utils.TextUtils
+import com.sun.management.OperatingSystemMXBean
 import net.kyori.adventure.audience.Audience
 import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.entity.Player
+import java.lang.management.ManagementFactory
 import java.util.concurrent.ArrayBlockingQueue
 import kotlin.concurrent.thread
 import kotlin.math.min
@@ -14,43 +16,39 @@ object ServerStatus {
 
     private var tabListContent = Pair("", "")
 
-    object Memory {
-        internal var totalMemP: Long = 0
-        internal var freeMemP: Long = 0
+    private val runtime = Runtime.getRuntime()
+    private val os = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
 
-        val totalMem: Long
-            get() = totalMemP
-        val freeMem: Long
-            get() = freeMemP
-        val usedMem: Long
-            get() = totalMemP - freeMemP
-    }
+    val cpuLoad: Double
+        get() = os.processCpuLoad
 
-    object TPS {
-        internal val maxTps = MinecraftServer.TICK_PER_SECOND.toDouble()
-        private val queueSize = MinecraftServer.TICK_PER_SECOND * 5
-        private val lastTicks = ArrayBlockingQueue<Double>(queueSize)
-        val tps: Double
-            get() = min(maxTps, 1000 / lastTicks.average())
+    val totalMem: Long
+        get() = runtime.totalMemory() / 1024 / 1024
+    val freeMem: Long
+        get() = runtime.freeMemory() / 1024 / 1024
+    val usedMem: Long
+        get() = totalMem - freeMem
 
-        fun onTick(tickTime: Double) {
-            if (lastTicks.remainingCapacity() == 0) lastTicks.poll()
-            lastTicks.offer(tickTime)
-        }
+
+    private val maxTps = MinecraftServer.TICK_PER_SECOND.toDouble()
+    private val queueSize = MinecraftServer.TICK_PER_SECOND * 5
+    private val lastTicks = ArrayBlockingQueue<Double>(queueSize)
+    val mspt: Double
+        get() = lastTicks.average()
+    val tps: Double
+        get() = min(maxTps, 1000 / mspt)
+    fun onTick(tickTime: Double) {
+        if (lastTicks.remainingCapacity() == 0) lastTicks.poll()
+        lastTicks.offer(tickTime)
     }
 
     init {
         thread(isDaemon = true) {
-            val runtime = Runtime.getRuntime()
             while (true) {
-                Memory.totalMemP = runtime.totalMemory() / 1024 / 1024
-                Memory.freeMemP = runtime.freeMemory() / 1024 / 1024
 
-                val tps = TPS.tps
+                val tps = tps
                 val tpsStr = StringBuilder(String.format("%.1f", tps))
-                if (tps == TPS.maxTps) tpsStr.append('*')
-                val usedMem = Memory.usedMem
-                val totalMem = Memory.totalMem
+                if (tps == maxTps) tpsStr.append('*')
 
                 tabListContent = Pair(
                     (
