@@ -44,7 +44,13 @@ object KickCommand : Command("kick") {
             }
             players.forEach { player ->
                 player.kick(kickMsg)
-                sender.alertMsg(if (isReasonNull) String.format(MSG_SUCCESS, player.username) else String.format(MSG_SUCCESS_REASON, player.username, reason))
+                sender.alertMsg(
+                    if (isReasonNull) {
+                        String.format(MSG_SUCCESS, player.username)
+                    } else {
+                        String.format(MSG_SUCCESS_REASON, player.username, reason)
+                    }
+                )
             }
         }
 

@@ -6,15 +6,11 @@ import com.github.laaitq.fbw.utils.JsonUtils
 import com.github.laaitq.fbw.utils.PlayerUtils
 import com.github.laaitq.fbw.utils.PlayerUtils.ipAddress
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslatableComponent
 import net.minestom.server.entity.Player
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
 import java.util.*
 
 object BanSystem {
@@ -30,43 +26,44 @@ object BanSystem {
     }
 
     fun read() {
-        Logger.debug("Loading banned players")
-        if (File(playersFilePath).exists()) {
-            try {
-                bannedPlayers.addAll(JsonUtils.json.decodeFromString(FileReader(playersFilePath).use { it.readText() }))
-            } catch (e: IllegalArgumentException) {
-                Logger.error("Something is wrong with the format of '$playersFilePath', initializing it")
-            }
-        } else {
-            BufferedWriter(FileWriter(playersFilePath)).use {
-                it.write("[]")
+        run {
+            Logger.debug("Loading banned players")
+            val file = File(playersFilePath)
+            if (file.isFile) {
+                try {
+                    bannedPlayers.addAll(JsonUtils.json.decodeFromString(file.reader().use { it.readText() }))
+                } catch (e: IllegalArgumentException) {
+                    Logger.error("Something is wrong with the format of '${file.path}', initializing it")
+                }
+            } else {
+                file.writer().use { it.write("[]") }
             }
         }
-
-        Logger.debug("Loading banned ips")
-        if (File(ipsFilePath).exists()) {
-            try {
-                bannedIps.addAll(JsonUtils.json.decodeFromString(FileReader(ipsFilePath).use { it.readText() }))
-            } catch (e: IllegalArgumentException) {
-                Logger.error("Something is wrong with the format of '$ipsFilePath', initializing it")
-            }
-        } else {
-            BufferedWriter(FileWriter(ipsFilePath)).use {
-                it.write("[]")
+        run {
+            Logger.debug("Loading banned ips")
+            val file = File(ipsFilePath)
+            if (file.isFile) {
+                try {
+                    bannedIps.addAll(JsonUtils.json.decodeFromString(file.reader().use { it.readText() }))
+                } catch (e: IllegalArgumentException) {
+                    Logger.error("Something is wrong with the format of '${file.path}', initializing it")
+                }
+            } else {
+                file.writer().use { it.write("[]") }
             }
         }
     }
 
     fun writePlayers() {
         Logger.debug("Storing banned players")
-        BufferedWriter(FileWriter(playersFilePath)).use {
+        File(playersFilePath).writer().use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers)))
         }
     }
 
     fun writeIps() {
         Logger.debug("Storing banned ips")
-        BufferedWriter(FileWriter(ipsFilePath)).use {
+        File(ipsFilePath).writer().use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps)))
         }
     }

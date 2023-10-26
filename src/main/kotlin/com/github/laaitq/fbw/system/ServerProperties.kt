@@ -1,7 +1,6 @@
 package com.github.laaitq.fbw.system
 
 import java.io.File
-import java.io.FileReader
 import java.io.FileWriter
 import java.util.*
 import kotlin.properties.ReadWriteProperty
@@ -11,7 +10,7 @@ import kotlin.reflect.full.declaredMemberProperties
 object ServerProperties {
 
     private object Info {
-        val file = File("server.properties")
+        val filePath = "server.properties"
         var init = false
     }
 
@@ -33,7 +32,8 @@ object ServerProperties {
     init {
         Logger.info("Loading properties")
         val properties = Properties()
-        if (!Info.file.createNewFile()) FileReader(Info.file).use { properties.load(it) }
+        val file = File(Info.filePath)
+        if (!file.createNewFile()) file.reader().use { properties.load(it) }
 
         MOTD = properties.getProperty("motd") ?: MOTD
         MAX_PLAYERS = (properties.getProperty("max-players") ?: "").toIntOrNull() ?: MAX_PLAYERS
@@ -62,7 +62,7 @@ object ServerProperties {
             val name = field.name.lowercase().replace('_', '-')
             newProperties.setProperty(name, field.get(this).toString())
         }
-        FileWriter(Info.file).use {
+        FileWriter(Info.filePath).use {
             newProperties.store(it, "FantasyBattleWorld server properties")
         }
     }

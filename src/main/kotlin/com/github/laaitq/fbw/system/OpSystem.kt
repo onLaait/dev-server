@@ -5,21 +5,17 @@ import com.github.laaitq.fbw.serializer.UUIDAsStringSerializer
 import com.github.laaitq.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.laaitq.fbw.utils.JsonUtils
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.ConsoleSender
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.fakeplayer.FakePlayer
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
 import java.util.*
 
 object OpSystem {
 
-    private const val jsonPath = "ops.json"
+    private const val filePath = "ops.json"
     val opPlayers = mutableSetOf<OpPlayer>()
 
     init {
@@ -29,22 +25,21 @@ object OpSystem {
 
     fun read() {
         Logger.debug("Loading ops")
-        if (File(jsonPath).exists()) {
+        val file = File(filePath)
+        if (file.isFile) {
             try {
-                opPlayers.addAll(JsonUtils.json.decodeFromString(FileReader(jsonPath).use { it.readText() }))
+                opPlayers.addAll(JsonUtils.json.decodeFromString(file.reader().use { it.readText() }))
             } catch (e: IllegalArgumentException) {
-                Logger.warn("Something is wrong with the format of '${jsonPath}', initializing it")
+                Logger.warn("Something is wrong with the format of '${file.path}', initializing it")
             }
         } else {
-            BufferedWriter(FileWriter(jsonPath)).use {
-                it.write("[]")
-            }
+            file.writer().use { it.write("[]") }
         }
     }
 
     fun write() {
         Logger.debug("Storing ops")
-        BufferedWriter(FileWriter(jsonPath)).use {
+        File(filePath).writer().use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers)))
         }
     }

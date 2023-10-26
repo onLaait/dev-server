@@ -11,19 +11,17 @@ import java.io.File
 
 object PlayerData {
 
-    private const val dir = "playerdata"
+    private const val dirPath = "playerdata"
 
     init {
-        File(dir).mkdir()
+        File(dirPath).mkdir()
     }
-
-    private fun getFile(player: Player): File = File(dir + '/' + player.uuid + ".yml")
 
     fun read(player: Player): PlayerData {
         Logger.debug("Loading player data of ${player.username}")
         val file = getFile(player)
         return if (file.isFile) {
-            Yaml.default.decodeFromString(file.readText())
+            Yaml.default.decodeFromString(file.reader().use { it.readText() })
         } else {
             PlayerData(player.username)
         }
@@ -31,10 +29,12 @@ object PlayerData {
 
     fun write(player: Player) {
         Logger.debug("Storing player data of ${player.username}")
-        getFile(player).writeText(Yaml.default.encodeToString(player.data))
+        getFile(player).writer().use { it.write(Yaml.default.encodeToString(player.data)) }
     }
 
     fun writeAllPlayers() = PlayerUtils.allPlayers.forEach { write(it) }
+
+    private fun getFile(player: Player): File = File(dirPath + '/' + player.uuid + ".yml")
 
     @Serializable
     data class PlayerData(

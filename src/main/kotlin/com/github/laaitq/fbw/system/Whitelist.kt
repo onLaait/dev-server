@@ -6,19 +6,15 @@ import com.github.laaitq.fbw.utils.IterableUtils.removeSingle
 import com.github.laaitq.fbw.utils.JsonUtils
 import com.github.laaitq.fbw.utils.PlayerUtils.allPlayers
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.minestom.server.entity.Player
-import java.io.BufferedWriter
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
 import java.util.*
 
 object Whitelist {
 
-    private const val jsonPath = "whitelist.json"
+    private const val filePath = "whitelist.json"
     val whitelistedPlayers = mutableSetOf<WhitelistedPlayer>()
 
     init {
@@ -28,24 +24,23 @@ object Whitelist {
 
     fun read() {
         Logger.debug("Loading whitelist")
-        if (File(jsonPath).exists()) {
+        val file = File(filePath)
+        if (file.isFile) {
             try {
-                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(FileReader(jsonPath).use { it.readText() })
+                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(file.reader().use { it.readText() })
                 whitelistedPlayers.clear()
                 whitelistedPlayers.addAll(list)
             } catch (e: Throwable) {
-                Logger.error("Something is wrong with the format of '$jsonPath', initializing it")
+                Logger.error("Something is wrong with the format of '${file.path}', initializing it")
             }
         } else {
-            BufferedWriter(FileWriter(jsonPath)).use {
-                it.write("[]")
-            }
+            file.writer().use { it.write("[]") }
         }
     }
 
     fun write() {
         Logger.debug("Storing whitelist")
-        BufferedWriter(FileWriter(jsonPath)).use {
+        File(filePath).writer().use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
         }
     }

@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.8.20"
-    kotlin("plugin.serialization") version "1.7.20"
+    kotlin("jvm") version "1.9.10"
+    kotlin("plugin.serialization") version "1.9.10"
     id("java")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -22,8 +22,8 @@ dependencies {
     implementation("org.jline:jline-terminal-jansi:3.21.0")
     implementation("net.kyori:adventure-api:4.13.0")
     implementation("net.kyori:adventure-text-minimessage:4.13.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-    implementation("com.charleskorn.kaml:kaml:0.52.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("com.charleskorn.kaml:kaml:0.55.0")
     implementation("org.joml:joml:1.10.5")
 }
 

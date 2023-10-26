@@ -21,6 +21,8 @@ object Main {
         val startTime = System.currentTimeMillis()
         Logger.info("Starting Minecraft server version ${MinecraftServer.VERSION_NAME}")
 
+        Thread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
+
         ServerProperties
         val viewDistanceStr = ServerProperties.VIEW_DISTANCE.toString()
         System.setProperty("minestom.chunk-view-distance", viewDistanceStr)
