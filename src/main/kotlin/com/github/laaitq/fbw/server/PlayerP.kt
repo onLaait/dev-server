@@ -1,4 +1,4 @@
-package com.github.laaitq.fbw
+package com.github.laaitq.fbw.server
 
 import com.github.laaitq.fbw.system.PlayerData
 import net.minestom.server.entity.Player

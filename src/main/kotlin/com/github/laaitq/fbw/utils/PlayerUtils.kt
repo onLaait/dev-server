@@ -1,6 +1,6 @@
 package com.github.laaitq.fbw.utils
 
-import com.github.laaitq.fbw.PlayerP
+import com.github.laaitq.fbw.server.PlayerP
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Player
 import java.net.InetSocketAddress

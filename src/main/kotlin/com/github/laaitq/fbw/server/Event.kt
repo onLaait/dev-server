@@ -1,4 +1,4 @@
-package com.github.laaitq.fbw
+package com.github.laaitq.fbw.server
 
 import com.github.laaitq.fbw.system.*
 import com.github.laaitq.fbw.system.BanSystem.kickIfBanned
@@ -18,7 +18,6 @@ import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.coordinate.Pos
-import net.minestom.server.coordinate.Vec
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.damage.DamageType
 import net.minestom.server.entity.fakeplayer.FakePlayer
@@ -30,6 +29,7 @@ import net.minestom.server.network.packet.client.play.ClientChatSessionUpdatePac
 import net.minestom.server.network.packet.client.play.ClientSetRecipeBookStatePacket
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket
 import net.minestom.server.network.packet.server.play.DisconnectPacket
+import net.minestom.server.network.packet.server.play.ExplosionPacket
 import net.minestom.server.ping.ResponseData
 import net.minestom.server.timer.TaskSchedule
 import java.util.*
@@ -173,17 +173,18 @@ object Event {
             MinecraftServer.getCommandManager().execute(e.player, "test ray")
         }
 
+        val voidJumper = mutableSetOf<Player>()
         event.addListener(EntityDamageEvent::class.java) { e ->
-            val entity = e.entity
             e.isCancelled = true
-            (entity as Player)
-            if (e.damageType == DamageType.VOID) {
-                entity.velocity = Vec(0.0, 3.8, 0.0)
-                repeat(20) { i ->
-                    MinecraftServer.getSchedulerManager().buildTask {
-                        entity.velocity = Vec(0.0, 500.0, 0.0)
-                    }.delay(if (i == 0) TaskSchedule.immediate() else TaskSchedule.millis((i*50).toLong())).schedule()
-                }
+            val entity = e.entity
+            if (entity !is Player) return@addListener
+            if (e.damageType == DamageType.VOID && !voidJumper.contains(entity)) {
+                voidJumper += entity
+                val pos = entity.position
+                entity.sendPacket(ExplosionPacket(pos.x, pos.y, pos.z, 0F, byteArrayOf(), 0F, 11F, 0F))
+                MinecraftServer.getSchedulerManager().buildTask {
+                    voidJumper -= entity
+                }.delay(TaskSchedule.seconds(1)).schedule()
             }
         }
 

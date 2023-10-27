@@ -1,9 +1,9 @@
 package com.github.laaitq.fbw.game.attack
 
-import com.github.laaitq.fbw.Instance
 import com.github.laaitq.fbw.game.obj.GameObject
 import com.github.laaitq.fbw.game.obj.Intersection
 import com.github.laaitq.fbw.game.utils.getTargetBlockIntersection
+import com.github.laaitq.fbw.server.Instance
 import net.minestom.server.coordinate.Vec
 
 class Ray : Attack() {

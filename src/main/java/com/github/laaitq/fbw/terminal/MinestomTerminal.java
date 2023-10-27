@@ -40,7 +40,7 @@ public class MinestomTerminal {
                     commandManager.execute(commandManager.getConsoleSender(), command);
                 } catch (UserInterruptException e) {
                     // Handle Ctrl + C
-                    System.exit(0);
+                    MinecraftServer.stopCleanly();
                     return;
                 } catch (EndOfFileException e) {
                     return;

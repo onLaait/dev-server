@@ -1,10 +1,10 @@
 package com.github.laaitq.fbw.command
 
-import com.github.laaitq.fbw.Instance
 import com.github.laaitq.fbw.game.attack.Ray
 import com.github.laaitq.fbw.game.obj.GameObject
 import com.github.laaitq.fbw.game.obj.PlayerObject
 import com.github.laaitq.fbw.game.utils.showOneDust
+import com.github.laaitq.fbw.server.Instance
 import com.github.laaitq.fbw.system.OpSystem.isOp
 import com.github.laaitq.fbw.utils.AudienceUtils.sendMsg
 import com.github.laaitq.fbw.utils.toVector3d
@@ -128,6 +128,9 @@ object TestCommand : Command("test") {
                         showOneDust(252, 140, 255, pos)
                     }
                 }
+                "lag" -> {
+                    sleep(10000)
+                }
             }
         }, argWord)
 
@@ -139,7 +142,7 @@ object TestCommand : Command("test") {
                         MinecraftServer.getSchedulerManager().buildTask {
                             sender.sendMsg("$i")
                             sender.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1f, 2f))
-                        }.delay(if (i == 0) TaskSchedule.immediate() else TaskSchedule.millis((i*50).toLong())).schedule()
+                       }.delay(if (i == 0) TaskSchedule.immediate() else TaskSchedule.millis((i*50).toLong())).schedule()
                     }
                 }
             }

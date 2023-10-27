@@ -16,10 +16,10 @@ object ServerUtils {
         description = LegacyComponentSerializer.legacySection().deserialize(ServerProperties.MOTD)
         maxPlayer = ServerProperties.MAX_PLAYERS
         File("server-icon.png").let { file ->
-            val inputStream = if (file.exists()) {
+            val inputStream = if (file.isFile) {
                 file.inputStream()
             } else {
-                this.javaClass.classLoader.getResourceAsStream("server-icon.png")!!
+                ClassLoader.getSystemResourceAsStream("server-icon.png")!!
             }
             val img = ImageIO.read(inputStream).getScaledInstance(64, 64, Image.SCALE_SMOOTH)
             val bufferedImg = BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB)

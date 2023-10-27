@@ -3,15 +3,18 @@ package com.github.laaitq.fbw.system
 import com.github.laaitq.fbw.serializer.UUIDAsStringSerializer
 import com.github.laaitq.fbw.utils.IterableUtils.removeSingle
 import com.github.laaitq.fbw.utils.JsonUtils
+import com.github.laaitq.fbw.utils.MyCoroutines
+import com.github.laaitq.fbw.utils.MyCoroutines.mustBeCompleted
 import com.github.laaitq.fbw.utils.PlayerUtils
 import com.github.laaitq.fbw.utils.PlayerUtils.ipAddress
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslatableComponent
 import net.minestom.server.entity.Player
-import java.io.File
 import java.util.*
+import kotlin.io.path.*
 
 object BanSystem {
     private const val playersFilePath = "banned-players.json"
@@ -28,44 +31,44 @@ object BanSystem {
     fun read() {
         run {
             Logger.debug("Loading banned players")
-            val file = File(playersFilePath)
-            if (file.isFile) {
+            val path = Path(playersFilePath)
+            if (path.isRegularFile()) {
                 try {
-                    bannedPlayers.addAll(JsonUtils.json.decodeFromString(file.reader().use { it.readText() }))
+                    bannedPlayers.addAll(JsonUtils.json.decodeFromString(path.reader().use { it.readText() }))
                 } catch (e: IllegalArgumentException) {
-                    Logger.error("Something is wrong with the format of '${file.path}', initializing it")
+                    Logger.error("Something is wrong with the format of '${path.name}', initializing it")
                 }
             } else {
-                file.writer().use { it.write("[]") }
+                path.writer().use { it.write("[]") }
             }
         }
         run {
             Logger.debug("Loading banned ips")
-            val file = File(ipsFilePath)
-            if (file.isFile) {
+            val path = Path(ipsFilePath)
+            if (path.isRegularFile()) {
                 try {
-                    bannedIps.addAll(JsonUtils.json.decodeFromString(file.reader().use { it.readText() }))
+                    bannedIps.addAll(JsonUtils.json.decodeFromString(path.reader().use { it.readText() }))
                 } catch (e: IllegalArgumentException) {
-                    Logger.error("Something is wrong with the format of '${file.path}', initializing it")
+                    Logger.error("Something is wrong with the format of '${path.name}', initializing it")
                 }
             } else {
-                file.writer().use { it.write("[]") }
+                path.writer().use { it.write("[]") }
             }
         }
     }
 
     fun writePlayers() {
         Logger.debug("Storing banned players")
-        File(playersFilePath).writer().use {
-            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers)))
-        }
+        MyCoroutines.fileOutputScope.launch {
+            Path(playersFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers))) }
+        }.mustBeCompleted()
     }
 
     fun writeIps() {
         Logger.debug("Storing banned ips")
-        File(ipsFilePath).writer().use {
-            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps)))
-        }
+        MyCoroutines.fileOutputScope.launch {
+            Path(ipsFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps))) }
+        }.mustBeCompleted()
     }
 
     @Serializable

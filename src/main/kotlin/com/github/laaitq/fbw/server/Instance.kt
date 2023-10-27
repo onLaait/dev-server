@@ -1,4 +1,4 @@
-package com.github.laaitq.fbw
+package com.github.laaitq.fbw.server
 
 import com.github.laaitq.fbw.system.Logger
 import net.minestom.server.MinecraftServer
@@ -12,7 +12,7 @@ object Instance {
 
     init {
         Logger.info("Preparing instances")
-        instance.setGenerator { unit -> unit.modifier().fillHeight(0, 1, Block.STONE) }
+        instance.setGenerator { unit -> unit.modifier().fillHeight(0, 1, Block.GRASS_BLOCK) }
         instance.timeRate = 0
         instance.timeUpdate = null
         instance.enableAutoChunkLoad(false)

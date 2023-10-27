@@ -1,10 +1,17 @@
 package com.github.laaitq.fbw
 
 import com.github.laaitq.fbw.command.CommandRegister
+import com.github.laaitq.fbw.server.DefaultExceptionHandler
+import com.github.laaitq.fbw.server.Event
+import com.github.laaitq.fbw.server.Instance
+import com.github.laaitq.fbw.server.PlayerP
 import com.github.laaitq.fbw.system.*
 import com.github.laaitq.fbw.terminal.MinestomTerminal
 import com.github.laaitq.fbw.utils.ComponentUtils
+import com.github.laaitq.fbw.utils.MyCoroutines
 import com.github.laaitq.fbw.utils.PlayerUtils
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extras.MojangAuth
@@ -59,15 +66,19 @@ object Main {
         CommandRegister
 
         ComponentUtils
+        MyCoroutines
 
         MinecraftServer.getSchedulerManager().buildShutdownTask {
             Logger.info("Stopping server")
-            val closeMessage = Component.translatable("multiplayer.disconnect.server_shutdown")
             PlayerData.writeAllPlayers()
+            val closeMessage = Component.translatable("multiplayer.disconnect.server_shutdown")
             PlayerUtils.allPlayers.forEach { player ->
                 player.kick(closeMessage)
             }
             MinestomTerminal.stop()
+            runBlocking {
+                MyCoroutines.mustJobs.joinAll()
+            }
             Thread.sleep(100)
         }
 

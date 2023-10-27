@@ -1,17 +1,20 @@
 package com.github.laaitq.fbw.system
 
-import com.github.laaitq.fbw.PlayerP
 import com.github.laaitq.fbw.serializer.UUIDAsStringSerializer
+import com.github.laaitq.fbw.server.PlayerP
 import com.github.laaitq.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.laaitq.fbw.utils.JsonUtils
+import com.github.laaitq.fbw.utils.MyCoroutines
+import com.github.laaitq.fbw.utils.MyCoroutines.mustBeCompleted
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.ConsoleSender
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.fakeplayer.FakePlayer
-import java.io.File
 import java.util.*
+import kotlin.io.path.*
 
 object OpSystem {
 
@@ -25,23 +28,23 @@ object OpSystem {
 
     fun read() {
         Logger.debug("Loading ops")
-        val file = File(filePath)
-        if (file.isFile) {
+        val path = Path(filePath)
+        if (path.isRegularFile()) {
             try {
-                opPlayers.addAll(JsonUtils.json.decodeFromString(file.reader().use { it.readText() }))
+                opPlayers.addAll(JsonUtils.json.decodeFromString(path.reader().use { it.readText() }))
             } catch (e: IllegalArgumentException) {
-                Logger.warn("Something is wrong with the format of '${file.path}', initializing it")
+                Logger.warn("Something is wrong with the format of '${path.name}', initializing it")
             }
         } else {
-            file.writer().use { it.write("[]") }
+            path.writer().use { it.write("[]") }
         }
     }
 
     fun write() {
         Logger.debug("Storing ops")
-        File(filePath).writer().use {
-            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers)))
-        }
+        MyCoroutines.fileOutputScope.launch {
+            Path(filePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers))) }
+        }.mustBeCompleted()
     }
 
     @Serializable

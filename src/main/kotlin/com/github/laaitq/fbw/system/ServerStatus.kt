@@ -43,9 +43,8 @@ object ServerStatus {
     }
 
     init {
-        thread(isDaemon = true) {
+        thread(name = "ServerStatusThread", isDaemon = true) {
             while (true) {
-
                 val tps = tps
                 val tpsStr = StringBuilder(String.format("%.1f", tps))
                 if (tps == maxTps) tpsStr.append('*')

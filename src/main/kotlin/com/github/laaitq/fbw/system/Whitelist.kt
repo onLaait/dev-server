@@ -4,13 +4,16 @@ import com.github.laaitq.fbw.serializer.UUIDAsStringSerializer
 import com.github.laaitq.fbw.system.OpSystem.isOp
 import com.github.laaitq.fbw.utils.IterableUtils.removeSingle
 import com.github.laaitq.fbw.utils.JsonUtils
+import com.github.laaitq.fbw.utils.MyCoroutines
+import com.github.laaitq.fbw.utils.MyCoroutines.mustBeCompleted
 import com.github.laaitq.fbw.utils.PlayerUtils.allPlayers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.minestom.server.entity.Player
-import java.io.File
 import java.util.*
+import kotlin.io.path.*
 
 object Whitelist {
 
@@ -24,25 +27,27 @@ object Whitelist {
 
     fun read() {
         Logger.debug("Loading whitelist")
-        val file = File(filePath)
-        if (file.isFile) {
+        val path = Path(filePath)
+        if (path.isRegularFile()) {
             try {
-                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(file.reader().use { it.readText() })
+                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(path.reader().use { it.readText() })
                 whitelistedPlayers.clear()
                 whitelistedPlayers.addAll(list)
             } catch (e: Throwable) {
-                Logger.error("Something is wrong with the format of '${file.path}', initializing it")
+                Logger.error("Something is wrong with the format of '${path.name}', initializing it")
             }
         } else {
-            file.writer().use { it.write("[]") }
+            path.writer().use { it.write("[]") }
         }
     }
 
     fun write() {
         Logger.debug("Storing whitelist")
-        File(filePath).writer().use {
-            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
-        }
+        MyCoroutines.fileOutputScope.launch {
+            Path(filePath).writer().use {
+                it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
+            }
+        }.mustBeCompleted()
     }
 
     fun enable() {

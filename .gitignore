@@ -6,8 +6,5 @@
 /src/test/
 /logs/
 /playerdata/
-/banned-ips.json
-/banned-players.json
-/ops.json
 /server.properties
-/whitelist.json
+/*.json

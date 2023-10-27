@@ -1,8 +1,14 @@
 package com.github.laaitq.fbw.system
 
-import java.io.File
-import java.io.FileWriter
+import com.github.laaitq.fbw.utils.MyCoroutines
+import com.github.laaitq.fbw.utils.MyCoroutines.mustBeCompleted
+import kotlinx.coroutines.launch
+import java.nio.file.FileAlreadyExistsException
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.createFile
+import kotlin.io.path.reader
+import kotlin.io.path.writer
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberProperties
@@ -32,8 +38,12 @@ object ServerProperties {
     init {
         Logger.info("Loading properties")
         val properties = Properties()
-        val file = File(Info.filePath)
-        if (!file.createNewFile()) file.reader().use { properties.load(it) }
+        val path = Path(Info.filePath)
+        try {
+            path.createFile()
+        } catch (e: FileAlreadyExistsException) {
+            path.reader().use { properties.load(it) }
+        }
 
         MOTD = properties.getProperty("motd") ?: MOTD
         MAX_PLAYERS = (properties.getProperty("max-players") ?: "").toIntOrNull() ?: MAX_PLAYERS
@@ -62,9 +72,9 @@ object ServerProperties {
             val name = field.name.lowercase().replace('_', '-')
             newProperties.setProperty(name, field.get(this).toString())
         }
-        FileWriter(Info.filePath).use {
-            newProperties.store(it, "FantasyBattleWorld server properties")
-        }
+        MyCoroutines.fileOutputScope.launch {
+            Path(Info.filePath).writer().use { newProperties.store(it, "FantasyBattleWorld server properties") }
+        }.mustBeCompleted()
     }
 
     private class Property<T>(initVal: T) : ReadWriteProperty<Any?, T> {

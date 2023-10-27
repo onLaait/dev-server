@@ -11,7 +11,13 @@ object ListCommand : Command("list") {
 
         setDefaultExecutor { sender, _ ->
             val allPlayers = PlayerUtils.allPlayers
-            sender.infoMsg(String.format(MSG, ServerProperties.MAX_PLAYERS, allPlayers.size, allPlayers.joinToString(", ") { it.username }))
+            sender.infoMsg(
+                String.format(
+                    MSG,
+                    ServerProperties.MAX_PLAYERS,
+                    allPlayers.size,
+                    allPlayers.joinToString(", ") { it.username })
+            )
         }
     }
 }
