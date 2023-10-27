@@ -10,6 +10,7 @@ import com.github.laaitq.fbw.terminal.MinestomTerminal
 import com.github.laaitq.fbw.utils.ComponentUtils
 import com.github.laaitq.fbw.utils.MyCoroutines
 import com.github.laaitq.fbw.utils.PlayerUtils
+import com.github.laaitq.fbw.utils.ServerUtils
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
@@ -49,24 +50,21 @@ object Main {
             }
         )
 
-        val ip = ServerProperties.SERVER_IP
-        val port = ServerProperties.SERVER_PORT
-        Logger.info("Starting Minecraft server on ${ip.ifBlank { "*" }}:$port")
-        minecraftServer.start(ip.ifBlank { "0.0.0.0" }, port)
-
-
         MinecraftServer.getConnectionManager().setPlayerProvider { uuid, username, connection -> PlayerP(uuid, username, connection) }
+
+        ServerUtils
+        ComponentUtils
+        MyCoroutines
 
         PlayerData
         BanSystem
         OpSystem
         Whitelist
 
+
         Event
         CommandRegister
 
-        ComponentUtils
-        MyCoroutines
 
         MinecraftServer.getSchedulerManager().buildShutdownTask {
             Logger.info("Stopping server")
@@ -83,6 +81,11 @@ object Main {
         }
 
         Instance
+
+        val ip = ServerProperties.SERVER_IP
+        val port = ServerProperties.SERVER_PORT
+        Logger.info("Hosting Minecraft server on ${ip.ifBlank { "*" }}:$port")
+        minecraftServer.start(ip.ifBlank { "0.0.0.0" }, port)
 
         MinestomTerminal.start()
 

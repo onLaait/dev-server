@@ -16,7 +16,7 @@ import kotlin.reflect.full.declaredMemberProperties
 object ServerProperties {
 
     private object Info {
-        val filePath = "server.properties"
+        const val filePath = "server.properties"
         var init = false
     }
 

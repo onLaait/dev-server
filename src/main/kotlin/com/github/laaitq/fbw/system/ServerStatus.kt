@@ -44,6 +44,8 @@ object ServerStatus {
 
     init {
         thread(name = "ServerStatusThread", isDaemon = true) {
+            cpuLoad // 첫 실행 시 렉 발생
+
             while (true) {
                 val tps = tps
                 val tpsStr = StringBuilder(String.format("%.1f", tps))

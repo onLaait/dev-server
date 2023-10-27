@@ -1,5 +1,6 @@
 package com.github.laaitq.fbw.utils
 
+import com.github.laaitq.fbw.system.Logger
 import com.github.laaitq.fbw.system.ServerProperties
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minestom.server.ping.ResponseData
@@ -15,11 +16,13 @@ object ServerUtils {
     val responseData = ResponseData().apply {
         description = LegacyComponentSerializer.legacySection().deserialize(ServerProperties.MOTD)
         maxPlayer = ServerProperties.MAX_PLAYERS
-        File("server-icon.png").let { file ->
+        Logger.debug("Loading server icon")
+        val serverIconPath = "server-icon.png"
+        File(serverIconPath).let { file ->
             val inputStream = if (file.isFile) {
                 file.inputStream()
             } else {
-                ClassLoader.getSystemResourceAsStream("server-icon.png")!!
+                ClassLoader.getSystemResourceAsStream(serverIconPath)!!
             }
             val img = ImageIO.read(inputStream).getScaledInstance(64, 64, Image.SCALE_SMOOTH)
             val bufferedImg = BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB)

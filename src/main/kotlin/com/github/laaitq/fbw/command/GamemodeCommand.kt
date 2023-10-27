@@ -100,7 +100,7 @@ object GamemodeCommand : Command("gamemode", "gm") {
      * notifies them (and the sender) in the chat.
      */
     private fun executeOthers(sender: CommandSender, mode: GameMode, entities: List<Entity>) {
-        if (entities.size == 0) {
+        if (entities.isEmpty()) {
             //If there are no players that could be modified, display an error message
             if (sender.isPlayer) sender.sendMsg(
                 Component.translatable(
