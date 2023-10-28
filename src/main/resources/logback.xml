@@ -5,7 +5,7 @@
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/latest.log</file>
         <encoder>
-            <pattern>[%d{HH:mm:ss}] [%level]: %msg%n</pattern>
+            <pattern>[%d{HH:mm:ss}] [%thread/%level]: %msg%n</pattern>
         </encoder>
     </appender>
 

@@ -13,6 +13,7 @@ import com.github.laaitq.fbw.utils.PlayerUtils
 import com.github.laaitq.fbw.utils.PlayerUtils.brand
 import com.github.laaitq.fbw.utils.PlayerUtils.data
 import com.github.laaitq.fbw.utils.ServerUtils
+import com.github.laaitq.fbw.utils.ServerUtils.refreshEntries
 import com.github.laaitq.fbw.utils.TextUtils.formatText
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
@@ -30,7 +31,6 @@ import net.minestom.server.network.packet.client.play.ClientSetRecipeBookStatePa
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket
 import net.minestom.server.network.packet.server.play.DisconnectPacket
 import net.minestom.server.network.packet.server.play.ExplosionPacket
-import net.minestom.server.ping.ResponseData
 import net.minestom.server.timer.TaskSchedule
 import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -184,7 +184,7 @@ object Event {
                 entity.sendPacket(ExplosionPacket(pos.x, pos.y, pos.z, 0F, byteArrayOf(), 0F, 11F, 0F))
                 MinecraftServer.getSchedulerManager().buildTask {
                     voidJumper -= entity
-                }.delay(TaskSchedule.seconds(1)).schedule()
+                }.delay(TaskSchedule.millis(500)).schedule()
             }
         }
 
@@ -232,11 +232,5 @@ object Event {
                 }
             }
         }
-    }
-
-    private fun ResponseData.refreshEntries() {
-        if (ServerProperties.HIDE_ONLINE_PLAYERS) return
-        this.clearEntries()
-        this.addEntries(MinecraftServer.getConnectionManager().onlinePlayers)
     }
 }

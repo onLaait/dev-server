@@ -20,6 +20,7 @@ object CommandRegister {
                 BroadcastCommand,
                 DeopCommand,
                 GamemodeCommand,
+                HelpCommand,
                 InfoCommand,
                 KickCommand,
                 ListCommand,

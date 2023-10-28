@@ -31,12 +31,10 @@ object PlayerData {
         }
     }
 
-    fun write(player: Player) {
+    fun write(player: Player) = MyCoroutines.fileOutputScope.launch {
         Logger.debug("Storing player data of ${player.username}")
-        MyCoroutines.fileOutputScope.launch {
-            getPath(player).writer().use { it.write(Yaml.default.encodeToString(player.data)) }
-        }.mustBeCompleted()
-    }
+        getPath(player).writer().use { it.write(Yaml.default.encodeToString(player.data)) }
+    }.mustBeCompleted()
 
     fun writeAllPlayers() = PlayerUtils.allPlayers.forEach { write(it) }
 

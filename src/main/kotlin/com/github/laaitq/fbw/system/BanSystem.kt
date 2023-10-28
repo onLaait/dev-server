@@ -57,19 +57,15 @@ object BanSystem {
         }
     }
 
-    fun writePlayers() {
+    fun writePlayers() = MyCoroutines.fileOutputScope.launch {
         Logger.debug("Storing banned players")
-        MyCoroutines.fileOutputScope.launch {
-            Path(playersFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers))) }
-        }.mustBeCompleted()
-    }
+        Path(playersFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers))) }
+    }.mustBeCompleted()
 
-    fun writeIps() {
+    fun writeIps() = MyCoroutines.fileOutputScope.launch {
         Logger.debug("Storing banned ips")
-        MyCoroutines.fileOutputScope.launch {
-            Path(ipsFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps))) }
-        }.mustBeCompleted()
-    }
+        Path(ipsFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps))) }
+    }.mustBeCompleted()
 
     @Serializable
     data class BannedPlayer(

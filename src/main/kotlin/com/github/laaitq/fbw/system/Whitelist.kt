@@ -41,14 +41,12 @@ object Whitelist {
         }
     }
 
-    fun write() {
+    fun write() = MyCoroutines.fileOutputScope.launch {
         Logger.debug("Storing whitelist")
-        MyCoroutines.fileOutputScope.launch {
-            Path(filePath).writer().use {
-                it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
-            }
-        }.mustBeCompleted()
-    }
+        Path(filePath).writer().use {
+            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
+        }
+    }.mustBeCompleted()
 
     fun enable() {
         if (ServerProperties.WHITE_LIST) return

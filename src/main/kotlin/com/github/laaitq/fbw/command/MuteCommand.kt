@@ -91,6 +91,9 @@ object MuteCommand : Command("mute") {
                 sender.warnMsg(MSG_DURATION_INVALID)
                 return
             }
+            if (chars.isNotEmpty()) {
+                duration += String(chars).toInt().seconds
+            }
             player.data.muteTime = System.currentTimeMillis() + duration.inWholeMilliseconds
             sender.alertMsg(String.format(MSG_SUCCESS_DURATION, player.username, duration.formattedString()))
         }

@@ -3,6 +3,7 @@ package com.github.laaitq.fbw.utils
 import com.github.laaitq.fbw.system.Logger
 import com.github.laaitq.fbw.system.ServerProperties
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
+import net.minestom.server.MinecraftServer
 import net.minestom.server.ping.ResponseData
 import java.awt.Image
 import java.awt.image.BufferedImage
@@ -36,5 +37,11 @@ object ServerUtils {
             }
             favicon = "data:image/png;base64,$base64Str"
         }
+    }
+
+    fun ResponseData.refreshEntries() {
+        if (ServerProperties.HIDE_ONLINE_PLAYERS) return
+        this.clearEntries()
+        this.addEntries(MinecraftServer.getConnectionManager().onlinePlayers)
     }
 }

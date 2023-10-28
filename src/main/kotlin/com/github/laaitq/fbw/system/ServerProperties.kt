@@ -64,18 +64,16 @@ object ServerProperties {
         write()
     }
 
-    fun write() {
+    fun write() = MyCoroutines.fileOutputScope.launch {
         Logger.debug("Storing properties")
         val newProperties = Properties()
         for (field in ServerProperties.javaClass.kotlin.declaredMemberProperties) {
             if (field.name == "INSTANCE") continue
             val name = field.name.lowercase().replace('_', '-')
-            newProperties.setProperty(name, field.get(this).toString())
+            newProperties.setProperty(name, field.get(this@ServerProperties).toString())
         }
-        MyCoroutines.fileOutputScope.launch {
-            Path(Info.filePath).writer().use { newProperties.store(it, "FantasyBattleWorld server properties") }
-        }.mustBeCompleted()
-    }
+        Path(Info.filePath).writer().use { newProperties.store(it, "FantasyBattleWorld server properties") }
+    }.mustBeCompleted()
 
     private class Property<T>(initVal: T) : ReadWriteProperty<Any?, T> {
         private var value = initVal

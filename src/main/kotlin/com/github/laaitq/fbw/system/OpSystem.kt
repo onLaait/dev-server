@@ -40,12 +40,10 @@ object OpSystem {
         }
     }
 
-    fun write() {
+    fun write() = MyCoroutines.fileOutputScope.launch {
         Logger.debug("Storing ops")
-        MyCoroutines.fileOutputScope.launch {
-            Path(filePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers))) }
-        }.mustBeCompleted()
-    }
+        Path(filePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers))) }
+    }.mustBeCompleted()
 
     @Serializable
     data class OpPlayer(

@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extras.MojangAuth
+import net.minestom.server.thread.MinestomThread
 
 object Main {
     @JvmStatic
@@ -30,6 +31,7 @@ object Main {
         Logger.info("Starting Minecraft server version ${MinecraftServer.VERSION_NAME}")
 
         Thread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
+        MinestomThread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
 
         ServerProperties
         val viewDistanceStr = ServerProperties.VIEW_DISTANCE.toString()
@@ -61,10 +63,8 @@ object Main {
         OpSystem
         Whitelist
 
-
         Event
         CommandRegister
-
 
         MinecraftServer.getSchedulerManager().buildShutdownTask {
             Logger.info("Stopping server")
