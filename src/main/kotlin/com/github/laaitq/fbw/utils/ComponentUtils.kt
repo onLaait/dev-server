@@ -17,7 +17,7 @@ object ComponentUtils {
 
     init {
         val localeStr = locale.toString().lowercase()
-        Logger.debug("Loading language $localeStr")
+        Logger.debug { "Loading language $localeStr" }
         val map: Map<String, @Serializable(with = MessageFormatAsStringSerializer::class) MessageFormat> =
             Json.decodeFromString(ClassLoader.getSystemResource("lang/$localeStr.json").readText())
         val registry = TranslationRegistry.create(Key.key("fbw"))

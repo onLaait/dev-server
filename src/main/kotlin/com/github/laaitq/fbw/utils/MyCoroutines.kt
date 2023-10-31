@@ -12,6 +12,7 @@ object MyCoroutines {
         return this
     }
 
-    val fileOutputScope = CoroutineScope(newSingleThreadContext("FileOutputDispatcher"))
-    val subScope = CoroutineScope(newSingleThreadContext("SubDispatcher"))
+    val chatScope = CoroutineScope(newSingleThreadContext("ChatThread"))
+    val fileOutputScope = CoroutineScope(newSingleThreadContext("FileOutputThread"))
+    val subScope = CoroutineScope(newSingleThreadContext("SubThread"))
 }

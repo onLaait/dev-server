@@ -22,7 +22,7 @@ object PlayerData {
     }
 
     fun read(player: Player): PlayerData {
-        Logger.debug("Loading player data of ${player.username}")
+        Logger.debug { "Loading player data of ${player.username}" }
         val path = getPath(player)
         return if (path.isRegularFile()) {
             Yaml.default.decodeFromString(path.reader().use { it.readText() })
@@ -32,7 +32,7 @@ object PlayerData {
     }
 
     fun write(player: Player) = MyCoroutines.fileOutputScope.launch {
-        Logger.debug("Storing player data of ${player.username}")
+        Logger.debug { "Storing player data of ${player.username}" }
         getPath(player).writer().use { it.write(Yaml.default.encodeToString(player.data)) }
     }.mustBeCompleted()
 

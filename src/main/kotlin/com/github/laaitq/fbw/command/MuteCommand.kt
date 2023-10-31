@@ -61,30 +61,45 @@ object MuteCommand : Command("mute") {
                             chars += it
                         }
                         's' -> {
-                            if (gotS || chars.isEmpty()) return
+                            if (gotS || chars.isEmpty()) {
+                                sender.warnMsg(MSG_DURATION_INVALID)
+                                return
+                            }
                             gotS = true
                             duration += String(chars).toInt().seconds
                             chars = charArrayOf()
                         }
                         'm' -> {
-                            if (gotM || chars.isEmpty()) return
+                            if (gotM || chars.isEmpty()) {
+                                sender.warnMsg(MSG_DURATION_INVALID)
+                                return
+                            }
                             gotM = true
                             duration += String(chars).toInt().minutes
                             chars = charArrayOf()
                         }
                         'h' -> {
-                            if (gotH || chars.isEmpty()) return
+                            if (gotH || chars.isEmpty()) {
+                                sender.warnMsg(MSG_DURATION_INVALID)
+                                return
+                            }
                             gotH = true
                             duration += String(chars).toInt().hours
                             chars = charArrayOf()
                         }
                         'd' -> {
-                            if (gotD || chars.isEmpty()) return
+                            if (gotD || chars.isEmpty()) {
+                                sender.warnMsg(MSG_DURATION_INVALID)
+                                return
+                            }
                             gotD = true
                             duration += String(chars).toInt().days
                             chars = charArrayOf()
                         }
-                        else -> return
+                        else -> {
+                            sender.warnMsg(MSG_DURATION_INVALID)
+                            return
+                        }
                     }
                 }
             } catch (e: IllegalArgumentException) {

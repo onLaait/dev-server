@@ -9,12 +9,14 @@ import com.github.laaitq.fbw.utils.AudienceUtils.broadcast
 import com.github.laaitq.fbw.utils.AudienceUtils.warnMsg
 import com.github.laaitq.fbw.utils.ComponentUtils.plainText
 import com.github.laaitq.fbw.utils.ComponentUtils.render
+import com.github.laaitq.fbw.utils.MyCoroutines
 import com.github.laaitq.fbw.utils.PlayerUtils
 import com.github.laaitq.fbw.utils.PlayerUtils.brand
 import com.github.laaitq.fbw.utils.PlayerUtils.data
 import com.github.laaitq.fbw.utils.ServerUtils
 import com.github.laaitq.fbw.utils.ServerUtils.refreshEntries
 import com.github.laaitq.fbw.utils.TextUtils.formatText
+import kotlinx.coroutines.launch
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
@@ -68,8 +70,8 @@ object Event {
             val player = e.player
             if (player is FakePlayer) return@addListener
             Logger.info("${player.username}[${player.playerConnection.remoteAddress}] logged in with (entityId=${player.entityId},serverAddress=${player.playerConnection.serverAddress},locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
-            e.setSpawningInstance(Instance.instance)
             player.respawnPoint = Pos(0.5, 1.0, 0.5)
+            e.setSpawningInstance(Instance.instance)
             if (player.data.lastKnownName == player.username) {
                 broadcast(formatText("<green><bold>●</bold><white> ${player.username}"))
             } else {
@@ -136,14 +138,14 @@ object Event {
             PlayerData.write(player)
         }
 
-        event.addListener(PlayerChatEvent::class.java) { e ->
+        event.addListener(PlayerChatEvent::class.java) { e -> MyCoroutines.chatScope.launch {
             val player = e.player
             if (player.isMuted()) {
                 val muteTime = player.data.muteTime!!
                 if (muteTime == -1L) {
                     player.warnMsg("채팅이 비활성화된 상태입니다.")
                 } else {
-                    val remainTime = (muteTime-System.currentTimeMillis()).milliseconds
+                    val remainTime = (muteTime - System.currentTimeMillis()).milliseconds
                         .toComponents { days, hours, minutes, seconds, _ ->
                             return@toComponents if (days != 0L) {
                                  "${days}일"
@@ -158,12 +160,12 @@ object Event {
                     player.warnMsg("채팅이 비활성화된 상태입니다. $remainTime 후에 활성화됩니다.")
                 }
                 e.isCancelled = true
-                return@addListener
+                return@launch
             }
             val chat = "<${player.username}> ${e.message}"
             e.setChatFormat { Component.text(chat) }
             Logger.info(chat)
-        }
+        }}
 
         event.addListener(PlayerCommandEvent::class.java) { e ->
             Logger.info("${e.player.username} issued server command: /${e.command}")
@@ -193,13 +195,13 @@ object Event {
             val brand = e.messageString.let {
                 if (!it.first().isLetter()) it.substring(1) else it
             }
-            Logger.debug("${e.player.username} is using client '$brand'")
+            Logger.debug { "${e.player.username} is using client '$brand'" }
             e.player.brand = brand
         }
 
         event.addListener(PlayerSettingsChangeEvent::class.java) { e ->
             val player = e.player
-            Logger.debug("${player.username} (locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
+            Logger.debug { ("${player.username} (locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})") }
         }
 
         event.addListener(PlayerDeathEvent::class.java) { e ->

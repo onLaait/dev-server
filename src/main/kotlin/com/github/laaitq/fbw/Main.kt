@@ -17,6 +17,8 @@ import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extras.MojangAuth
 import net.minestom.server.thread.MinestomThread
+import org.apache.logging.log4j.Level
+import org.apache.logging.log4j.core.config.Configurator
 
 object Main {
     @JvmStatic
@@ -34,6 +36,10 @@ object Main {
         MinestomThread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
 
         ServerProperties
+        if (ServerProperties.DEBUG) {
+            Configurator.setLevel("ConsoleLogger", Level.DEBUG)
+            Configurator.setLevel("FileLogger", Level.DEBUG)
+        }
         val viewDistanceStr = ServerProperties.VIEW_DISTANCE.toString()
         System.setProperty("minestom.chunk-view-distance", viewDistanceStr)
         System.setProperty("minestom.entity-view-distance", viewDistanceStr)

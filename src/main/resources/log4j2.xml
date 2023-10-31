@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="SysOut" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{HH:mm:ss} %level]: %msg{nolookups}%n" />
+        </Console>
+        <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg{nolookups}%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy />
+                <OnStartupTriggeringPolicy />
+            </Policies>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <Root level="warn">
+            <AppenderRef ref="SysOut"/>
+            <AppenderRef ref="File"/>
+        </Root>
+        <Logger name="ConsoleLogger" level="info" additivity="false">
+            <AppenderRef ref="SysOut" />
+        </Logger>
+        <Logger name="FileLogger" level="info" additivity="false">
+            <AppenderRef ref="File" />
+        </Logger>
+    </Loggers>
+</Configuration>

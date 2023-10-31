@@ -2,25 +2,30 @@ package com.github.laaitq.fbw.system
 
 import com.github.laaitq.fbw.utils.ComponentUtils.plainText
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.logger.slf4j.ComponentLogger
-import org.slf4j.LoggerFactory
+import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
+import org.apache.logging.log4j.kotlin.Logging
+import org.apache.logging.log4j.kotlin.logger
 
-object Logger {
-    private val console = ComponentLogger.logger("ConsoleLogger")
-    private val file = LoggerFactory.getLogger("FileLogger")
+object Logger : Logging {
+    private val console = logger("ConsoleLogger")
+    private val file = logger("FileLogger")
 
-    fun debug(msg: String) {
-        if (ServerProperties.DEBUG) {
-            console.debug(msg)
-            file.debug(msg)
+    private fun serialize(component: Component) = ANSIComponentSerializer.ansi().serialize(component)
+
+    fun debug(supplier: () -> Any?) {
+        console.debug {
+            val invoke = supplier.invoke()
+            if (invoke is Component) serialize(invoke) else invoke
+        }
+        file.debug {
+            val invoke = supplier.invoke()
+            if (invoke is Component) invoke.plainText() else invoke
         }
     }
 
-    fun debug(msg: Component) {
-        if (ServerProperties.DEBUG) {
-            console.debug(msg)
-            file.debug(msg.plainText())
-        }
+    fun debug(msg: Any) {
+        console.debug(msg)
+        file.debug(msg)
     }
 
     fun info(msg: String) {
@@ -29,7 +34,7 @@ object Logger {
     }
 
     fun info(msg: Component) {
-        console.info(msg)
+        console.info(serialize(msg))
         file.info(msg.plainText())
     }
 
@@ -39,7 +44,7 @@ object Logger {
     }
 
     fun warn(msg: Component) {
-        console.warn(msg)
+        console.warn(serialize(msg))
         file.warn(msg.plainText())
     }
 
@@ -49,7 +54,7 @@ object Logger {
     }
 
     fun error(msg: Component) {
-        console.error(msg)
+        console.error(serialize(msg))
         file.error(msg.plainText())
     }
 }
