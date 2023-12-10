@@ -1,11 +1,10 @@
 plugins {
-    kotlin("jvm") version "1.9.10"
-    kotlin("plugin.serialization") version "1.9.10"
+    kotlin("jvm") version "1.9.21"
+    kotlin("plugin.serialization") version "1.9.21"
     id("java")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
-
-group = "com.github.laaitq.fbw"
+group = "com.github.onlaait.fbw"
 version = "0.1"
 
 repositories {
@@ -15,19 +14,28 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.hollowcube:minestom-ce:438338381e")
+    implementation("dev.hollowcube:minestom-ce:1554487748")
+
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.21.1")
-    implementation("org.apache.logging.log4j:log4j-core:2.21.1")
-    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.3.0")
-    implementation("org.jline:jline:3.21.0")
-    implementation("org.jline:jline-terminal-jansi:3.21.0")
-    implementation("net.kyori:adventure-api:4.13.0")
-    implementation("net.kyori:adventure-text-minimessage:4.13.0")
-    implementation("net.kyori:adventure-text-serializer-ansi:4.14.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+
+    val log4jVersion = "2.22.0"
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-iostreams:$log4jVersion")
+
+    implementation("net.minecrell:terminalconsoleappender:1.3.0")
+    implementation("org.jline:jline-terminal-jansi:3.20.0")
+
+    val adventureVersion = "4.14.0"
+    implementation("net.kyori:adventure-api:$adventureVersion")
+    implementation("net.kyori:adventure-text-minimessage:$adventureVersion")
+    implementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
+
     implementation("com.charleskorn.kaml:kaml:0.55.0")
+
     implementation("org.joml:joml:1.10.5")
+
 }
 
 tasks {
@@ -38,10 +46,12 @@ tasks {
 
         manifest {
             attributes (
-                "Main-Class" to "com.github.laaitq.fbw.Main",
+                "Main-Class" to "${project.group}.Main",
                 "Multi-Release" to true
             )
         }
+
+        transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer::class.java)
     }
 
     build {

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <Console name="SysOut" target="SYSTEM_OUT">
+        <TerminalConsole name="Console">
             <PatternLayout pattern="[%d{HH:mm:ss} %level]: %msg{nolookups}%n" />
-        </Console>
+        </TerminalConsole>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg{nolookups}%n" />
             <Policies>
@@ -14,11 +14,15 @@
     </Appenders>
     <Loggers>
         <Root level="warn">
-            <AppenderRef ref="SysOut"/>
+            <AppenderRef ref="Console"/>
             <AppenderRef ref="File"/>
         </Root>
+        <Logger name="DefaultLogger" level="info" additivity="false">
+            <AppenderRef ref="Console" />
+            <AppenderRef ref="File" />
+        </Logger>
         <Logger name="ConsoleLogger" level="info" additivity="false">
-            <AppenderRef ref="SysOut" />
+            <AppenderRef ref="Console" />
         </Logger>
         <Logger name="FileLogger" level="info" additivity="false">
             <AppenderRef ref="File" />
