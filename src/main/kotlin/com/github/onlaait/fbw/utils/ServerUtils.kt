@@ -17,7 +17,7 @@ object ServerUtils {
     val responseData = ResponseData().apply {
         description = LegacyComponentSerializer.legacySection().deserialize(ServerProperties.MOTD)
         maxPlayer = ServerProperties.MAX_PLAYERS
-        Logger.debug("Loading server icon")
+        Logger.debug { "Loading server icon" }
         val serverIconPath = "server-icon.png"
         File(serverIconPath).let { file ->
             val inputStream = if (file.isFile) {

@@ -21,7 +21,7 @@ object InfoCommand : Command("info") {
             .onlyPlayers(true)
             .singleEntity(true)
         argPlayer.setCallback { _, _ -> // Doesn't work
-            Logger.debug("Command argument callback works!!!")
+            Logger.debug { "Command argument callback works!!!" }
         }
 
         setDefaultExecutor { sender, context ->

@@ -19,6 +19,7 @@ import org.apache.logging.log4j.io.IoBuilder
 import java.text.DecimalFormat
 
 object Main {
+
     @JvmStatic
     fun main(args: Array<String>) {
         println("Starting ${javaClass.name}")
@@ -47,6 +48,8 @@ object Main {
         System.setProperty("minestom.chunk-view-distance", viewDistanceStr)
         System.setProperty("minestom.entity-view-distance", viewDistanceStr)
         System.setProperty("minestom.tps", "100")
+
+//        VelocityProxy.enable("9gXnEEDghmNr")
 
         val minecraftServer = MinecraftServer.init()
 

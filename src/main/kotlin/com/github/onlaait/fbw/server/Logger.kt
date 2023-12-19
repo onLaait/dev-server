@@ -26,10 +26,6 @@ object Logger {
         file.debug(l2)
     }
 
-    fun debug(msg: Any) {
-        default.debug(msg)
-    }
-
     fun info(msg: String) {
         default.info(msg)
     }

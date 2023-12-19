@@ -20,6 +20,9 @@ import com.github.onlaait.fbw.utils.ServerUtils.refreshEntries
 import com.github.onlaait.fbw.utils.TextUtils.formatText
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.Style
+import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.coordinate.Pos
@@ -37,6 +40,7 @@ import net.minestom.server.network.packet.server.play.DisconnectPacket
 import net.minestom.server.network.packet.server.play.ExplosionPacket
 import net.minestom.server.timer.TaskSchedule
 import java.util.*
+import java.util.regex.Pattern
 import kotlin.time.Duration.Companion.milliseconds
 
 object Event {
@@ -140,6 +144,16 @@ object Event {
             PlayerData.write(player)
         }
 
+        val urlSerializer = LegacyComponentSerializer
+            .builder()
+            .extractUrls(
+                Pattern.compile(
+                    "https?://(www\\.)?[a-zA-Z0-9가-힣]{2,}\\.[a-zA-Z0-9가-힣]{2,}(\\.[a-zA-Z0-9가-힣]{2,})?(/\\S+)?"
+                ),
+                Style.style(TextDecoration.UNDERLINED)
+                    .color(NamedTextColor.GRAY)
+            )
+            .build()
         event.addListener(PlayerChatEvent::class.java) { e ->
             val player = e.player
             if (player.isMuted()) {
@@ -165,8 +179,8 @@ object Event {
                 return@addListener
             }
             e.setChatFormat {
-                Component.text("<${player.username}> ${e.message}")
-                    .color(NamedTextColor.WHITE)
+                urlSerializer.deserialize("<${player.username}> ${e.message}")
+                    .colorIfAbsent(NamedTextColor.WHITE)
                     .also { Logger.info(it) }
             }
         }
@@ -183,6 +197,7 @@ object Event {
         event.addListener(EntityDamageEvent::class.java) { e ->
             e.isCancelled = true
             val entity = e.entity
+            Logger.debug { "$entity damaged: ${e.damageType}" }
             if (entity !is Player) return@addListener
             if (e.damageType == DamageType.VOID && !voidJumper.contains(entity)) {
                 voidJumper += entity

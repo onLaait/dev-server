@@ -15,7 +15,7 @@ object Terminal : SimpleTerminalConsole() {
 
     override fun start() {
         thread(name = "Terminal") {
-            Logger.debug("Starting terminal")
+            Logger.debug { "Starting terminal" }
             running = true
             super.start()
         }

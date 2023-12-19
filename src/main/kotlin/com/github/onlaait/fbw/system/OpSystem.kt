@@ -28,7 +28,7 @@ object OpSystem {
     }
 
     fun read() {
-        Logger.debug("Loading ops")
+        Logger.debug { "Loading ops" }
         val path = Path(filePath)
         if (path.isRegularFile()) {
             try {
@@ -42,7 +42,7 @@ object OpSystem {
     }
 
     fun write() = MyCoroutines.fileOutputScope.launch {
-        Logger.debug("Storing ops")
+        Logger.debug { "Storing ops" }
         Path(filePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers))) }
     }.mustBeCompleted()
 

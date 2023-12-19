@@ -9,7 +9,10 @@ import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
 import com.github.onlaait.fbw.utils.toVector3d
 import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.TextColor
 import net.minestom.server.MinecraftServer
+import net.minestom.server.attribute.Attribute
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentWord
 import net.minestom.server.command.builder.arguments.number.ArgumentDouble
@@ -18,6 +21,10 @@ import net.minestom.server.coordinate.Vec
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.Player
+import net.minestom.server.potion.Potion
+import net.minestom.server.potion.PotionEffect
+import net.minestom.server.scoreboard.Sidebar
+import net.minestom.server.scoreboard.Sidebar.ScoreboardLine
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
 import org.joml.Matrix4d
@@ -27,6 +34,7 @@ import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+
 
 object TestCommand : Command("test") {
     init {
@@ -131,6 +139,11 @@ object TestCommand : Command("test") {
                 "lag" -> {
                     sleep(10000)
                 }
+                "haste" -> {
+                    val player = sender as Player
+                    player.getAttribute(Attribute.ATTACK_SPEED).baseValue = 1024F
+                    player.addEffect(Potion(PotionEffect.HASTE, Byte.MAX_VALUE, Int.MAX_VALUE))
+                }
             }
         }, argWord)
 
@@ -144,6 +157,14 @@ object TestCommand : Command("test") {
                             sender.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.MASTER, 1f, 2f))
                        }.delay(if (i == 0) TaskSchedule.immediate() else TaskSchedule.millis((i*50).toLong())).schedule()
                     }
+                }
+                "sidebar" -> {
+                    val sidebar = Sidebar(Component.text("사이드바"))
+                    sidebar.createLine(ScoreboardLine("a",
+                        Component.text("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                            .color(TextColor.color(context[argInt1], 0, 0)),
+                        0))
+                    sidebar.addViewer(sender as Player)
                 }
             }
         }, argWord, argInt1)
@@ -244,4 +265,5 @@ fun intersectRayOBBLegacy(ray: Ray, obb: OBB): Double? {
 
     return tmin
 }
+
 class OBB(val transform: Matrix4d, val extents: Vector3d)

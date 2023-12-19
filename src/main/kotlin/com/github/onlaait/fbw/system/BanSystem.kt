@@ -31,7 +31,7 @@ object BanSystem {
 
     fun read() {
         run {
-            Logger.debug("Loading banned players")
+            Logger.debug { "Loading banned players" }
             val path = Path(playersFilePath)
             if (path.isRegularFile()) {
                 try {
@@ -44,7 +44,7 @@ object BanSystem {
             }
         }
         run {
-            Logger.debug("Loading banned ips")
+            Logger.debug { "Loading banned ips" }
             val path = Path(ipsFilePath)
             if (path.isRegularFile()) {
                 try {
@@ -59,12 +59,12 @@ object BanSystem {
     }
 
     fun writePlayers() = MyCoroutines.fileOutputScope.launch {
-        Logger.debug("Storing banned players")
+        Logger.debug { "Storing banned players" }
         Path(playersFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers))) }
     }.mustBeCompleted()
 
     fun writeIps() = MyCoroutines.fileOutputScope.launch {
-        Logger.debug("Storing banned ips")
+        Logger.debug { "Storing banned ips" }
         Path(ipsFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps))) }
     }.mustBeCompleted()
 

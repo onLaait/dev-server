@@ -27,7 +27,7 @@ object Whitelist {
     }
 
     fun read() {
-        Logger.debug("Loading whitelist")
+        Logger.debug { "Loading whitelist" }
         val path = Path(filePath)
         if (path.isRegularFile()) {
             try {
@@ -43,7 +43,7 @@ object Whitelist {
     }
 
     fun write() = MyCoroutines.fileOutputScope.launch {
-        Logger.debug("Storing whitelist")
+        Logger.debug { "Storing whitelist" }
         Path(filePath).writer().use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
         }

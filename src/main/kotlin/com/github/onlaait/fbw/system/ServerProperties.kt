@@ -66,7 +66,7 @@ object ServerProperties {
     }
 
     fun write() = MyCoroutines.fileOutputScope.launch {
-        Logger.debug("Storing properties")
+        Logger.debug { "Storing properties" }
         val newProperties = Properties()
         for (field in ServerProperties.javaClass.kotlin.declaredMemberProperties) {
             if (field.name == "INSTANCE") continue

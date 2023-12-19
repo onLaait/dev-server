@@ -32,9 +32,9 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:$adventureVersion")
     implementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
 
-    implementation("com.charleskorn.kaml:kaml:0.55.0")
-
     implementation("org.joml:joml:1.10.5")
+
+    implementation("com.charleskorn.kaml:kaml:0.55.0")
 
 }
 
