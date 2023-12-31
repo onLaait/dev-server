@@ -1,6 +1,8 @@
 package com.github.onlaait.fbw
 
 import com.github.onlaait.fbw.command.CommandRegister
+import com.github.onlaait.fbw.physx.PxCylinderGeometry
+import com.github.onlaait.fbw.physx.PxManager
 import com.github.onlaait.fbw.server.*
 import com.github.onlaait.fbw.system.*
 import com.github.onlaait.fbw.utils.ComponentUtils
@@ -16,6 +18,8 @@ import net.minestom.server.thread.MinestomThread
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.io.IoBuilder
+import org.lwjgl.system.Configuration
+import org.lwjgl.system.Platform
 import java.text.DecimalFormat
 
 object Main {
@@ -38,6 +42,17 @@ object Main {
         Thread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
         MinestomThread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
 
+        val platform = when (Platform.get()) {
+            Platform.WINDOWS -> "windows"
+            Platform.LINUX -> "linux"
+            Platform.MACOSX -> if (Platform.getArchitecture() == Platform.Architecture.ARM64) "macos-arm64" else "macos"
+            else -> {
+                Logger.error("System platform not supported!")
+                return
+            }
+        }
+        Configuration.LIBRARY_PATH.set(ClassLoader.getSystemResource("lwjgl/$platform").path.removePrefix("/"))
+
         ServerProperties
         if (ServerProperties.DEBUG) {
             Configurator.setLevel("DefaultLogger", Level.DEBUG)
@@ -48,7 +63,7 @@ object Main {
         System.setProperty("minestom.chunk-view-distance", viewDistanceStr)
         System.setProperty("minestom.entity-view-distance", viewDistanceStr)
         System.setProperty("minestom.tps", "100")
-
+        PxCylinderGeometry
 //        VelocityProxy.enable("9gXnEEDghmNr")
 
         val minecraftServer = MinecraftServer.init()
@@ -94,6 +109,8 @@ object Main {
         CommandRegister
 
         Instance
+
+        PxManager
 
         val ip = ServerProperties.SERVER_IP
         val port = ServerProperties.SERVER_PORT

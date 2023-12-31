@@ -1,13 +1,12 @@
 package com.github.onlaait.fbw.game.obj
 
-import com.github.onlaait.fbw.game.attack.Ray
+import com.github.onlaait.fbw.game.Hitbox
 import net.minestom.server.coordinate.Pos
 
 interface GameObject {
+
     var isPenetrable: Boolean
     var isPenetrableByTeammate: Boolean
     var position: Pos
-    fun intersect(ray: Ray): Intersection?
+    val hitbox: Set<Hitbox>
 }
-
-data class Intersection(val distance: Double, val isHead: Boolean)

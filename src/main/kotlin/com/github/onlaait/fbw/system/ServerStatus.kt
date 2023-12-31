@@ -31,8 +31,7 @@ object ServerStatus {
 
 
     private val maxTps = MinecraftServer.TICK_PER_SECOND.toDouble()
-    private val queueSize = MinecraftServer.TICK_PER_SECOND * 5
-    private val lastTicks = ArrayBlockingQueue<Double>(queueSize)
+    private val lastTicks = ArrayBlockingQueue<Double>(MinecraftServer.TICK_PER_SECOND * 5)
     val mspt: Double
         get() = lastTicks.average()
     val tps: Double

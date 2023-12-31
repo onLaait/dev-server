@@ -36,6 +36,13 @@ dependencies {
 
     implementation("com.charleskorn.kaml:kaml:0.55.0")
 
+    val physxVersion = "2.3.1"
+    implementation("de.fabmax:physx-jni:$physxVersion:natives-windows")
+    implementation("de.fabmax:physx-jni:$physxVersion:natives-linux")
+    implementation("de.fabmax:physx-jni:$physxVersion:natives-macos")
+    implementation("de.fabmax:physx-jni:$physxVersion:natives-macos-arm64")
+
+    implementation("de.fabmax.kool:kool-physics:0.13.0")
 }
 
 tasks {

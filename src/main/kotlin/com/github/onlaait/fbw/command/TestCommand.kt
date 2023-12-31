@@ -1,13 +1,12 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.game.attack.Ray
-import com.github.onlaait.fbw.game.obj.GameObject
 import com.github.onlaait.fbw.game.obj.PlayerObject
+import com.github.onlaait.fbw.game.targeter.RayTargeter
 import com.github.onlaait.fbw.game.utils.showOneDust
+import com.github.onlaait.fbw.geometry.Ray
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.toVector3d
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
@@ -27,14 +26,8 @@ import net.minestom.server.scoreboard.Sidebar
 import net.minestom.server.scoreboard.Sidebar.ScoreboardLine
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
-import org.joml.Matrix4d
-import org.joml.Vector3d
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-
 
 object TestCommand : Command("test") {
     init {
@@ -83,56 +76,53 @@ object TestCommand : Command("test") {
 
                 "ray" -> {
                     val shooter = sender as Player
-                    val targetObjs = hashSetOf<GameObject>()
-                    for (player in MinecraftServer.getConnectionManager().onlinePlayers) {
-                        if (player != shooter) {
-                            targetObjs.add(PlayerObject(player))
+                    val targetObjs = MinecraftServer.getConnectionManager().onlinePlayers.filter { it != shooter }.map { PlayerObject(it) }
+
+                    var pos = shooter.position.withY { it + shooter.eyeHeight }
+                    val dir = pos.direction()
+                    val maxDist = 50f
+                    val targeter = RayTargeter(
+                        Ray(pos, dir, maxDist),
+                        targetObjs
+                    )
+                    val targets = targeter.target()
+                    val dist: Float
+                    if (targets.isNotEmpty()) {
+                        val target = targets.first()
+                        dist = target.distance
+                        val sound = if (!target.isHead) {
+                            Sound.sound(
+                                SoundEvent.BLOCK_NOTE_BLOCK_SNARE,
+                                Sound.Source.MASTER,
+                                1f,
+                                1.5f
+                            )
+                        } else {
+                            Sound.sound(
+                                SoundEvent.ENTITY_ARROW_HIT_PLAYER,
+                                Sound.Source.MASTER,
+                                1f,
+                                2f
+                            )
                         }
-                    }
-                    var pos = shooter.position.add(0.0, 1.62, 0.0)
-                    val ray = Ray().apply {
-                        targets = targetObjs
-                        origin = pos
-                        direction = shooter.position.direction()
-                    }
-                    val rayCastResult = ray.cast()
-                    val distances = mutableSetOf<Double>()
-                    if (rayCastResult.objWithIntersection.isNotEmpty()) {
-                        for (e in rayCastResult.objWithIntersection) {
-                            if (e.obj is PlayerObject) {
-                                distances += e.intersection.distance
-                                sender.playSound(
-                                    Sound.sound(
-                                        SoundEvent.BLOCK_NOTE_BLOCK_SNARE,
-                                        Sound.Source.MASTER,
-                                        1f,
-                                        1.5f
-                                    ), pos
-                                )
-                                if (e.intersection.isHead) {
-                                    sender.playSound(
-                                        Sound.sound(
-                                            SoundEvent.ENTITY_ARROW_HIT_PLAYER,
-                                            Sound.Source.MASTER,
-                                            1f,
-                                            2f
-                                        ), pos
-                                    )
-                                }
-                            }
-                            break
-                        }
-                    } else if (rayCastResult.distanceToGround != null) {
-                        distances += rayCastResult.distanceToGround
-                        sender.playSound(
-                            Sound.sound(SoundEvent.BLOCK_GLASS_BREAK, Sound.Source.MASTER, 1f, 2f),
-                            ray.origin.add(ray.direction.mul(rayCastResult.distanceToGround))
-                        )
+                        sender.playSound(sound, pos)
                     } else {
-                        distances += ray.maxDistance
+                        val distToGrnd = targeter.distanceToGround
+                        if (distToGrnd == null) {
+                            dist = maxDist
+                        } else {
+                            if (distToGrnd <= maxDist) {
+                                sender.playSound(
+                                    Sound.sound(SoundEvent.BLOCK_GLASS_BREAK, Sound.Source.MASTER, 1f, 2f),
+                                    pos.add(dir.mul(distToGrnd))
+                                )
+                            }
+                            dist = distToGrnd.toFloat()
+                        }
                     }
-                    repeat(distances.min().toInt()) {
-                        pos = pos.add(ray.direction)
+
+                    repeat(dist.toInt()) {
+                        pos = pos.add(dir)
                         showOneDust(252, 140, 255, pos)
                     }
                 }
@@ -208,62 +198,3 @@ object TestCommand : Command("test") {
         }, argWord, argDouble1, argDouble2, argDouble3, argInt1)
     }
 }
-
-fun intersectRayOBB(ray: Ray, obb: OBB): Double? {
-    var tMin = 0.0
-    var tMax = Double.POSITIVE_INFINITY
-
-    val dir = ray.direction.toVector3d()
-    val delta: Vector3d = obb.transform.getTranslation(Vector3d()).sub(ray.origin.toVector3d())
-
-    for (i in 0..2) {
-        val axis = obb.transform.getColumn(i, Vector3d())
-        val e = axis.dot(delta)
-        val f = dir.dot(axis)
-
-        if (abs(f) > 0.0001) {
-            var t1 = (e - obb.extents[i]) / f
-            var t2 = (e + obb.extents[i]) / f
-
-            if (t1 > t2) {
-                t1 = t2.also { t2 = t1 }
-            }
-
-            if (t2 < tMax)
-                tMax = t2
-            if (t1 > tMin)
-                tMin = t1
-
-            if (tMax < tMin) return null
-        } else {
-            if (-e - obb.extents[i] > 0 || -e + obb.extents[i] < 0) return null
-        }
-    }
-    return tMin
-}
-
-fun intersectRayOBBLegacy(ray: Ray, obb: OBB): Double? {
-    val inverse = obb.transform.invert()
-    val localRayOrigin = ray.origin.toVector3d().mulPosition(inverse)
-    val localRayDir = ray.direction.toVector3d().mulDirection(inverse)
-
-    val (tmin, tmax) = obb.extents.let {
-        val t1 = (it.x - localRayOrigin.x) / localRayDir.x
-        val t2 = (-it.x - localRayOrigin.x) / localRayDir.x
-        val t3 = (it.y - localRayOrigin.y) / localRayDir.y
-        val t4 = (-it.y - localRayOrigin.y) / localRayDir.y
-        val t5 = (it.z - localRayOrigin.z) / localRayDir.z
-        val t6 = (-it.z - localRayOrigin.z) / localRayDir.z
-
-        Pair(
-            max(max(min(t1, t2), min(t3, t4)), min(t5, t6)),
-            min(min(max(t1, t2), max(t3, t4)), max(t5, t6))
-        )
-    }
-
-    if (tmax < 0 || tmin > tmax) return null
-
-    return tmin
-}
-
-class OBB(val transform: Matrix4d, val extents: Vector3d)
