@@ -1,7 +1,6 @@
 package com.github.onlaait.fbw
 
 import com.github.onlaait.fbw.command.CommandRegister
-import com.github.onlaait.fbw.physx.PxCylinderGeometry
 import com.github.onlaait.fbw.physx.PxManager
 import com.github.onlaait.fbw.server.*
 import com.github.onlaait.fbw.system.*
@@ -36,11 +35,14 @@ object Main {
         val startTime = System.currentTimeMillis()
         Logger.info("Starting Minecraft server version ${MinecraftServer.VERSION_NAME}")
 
+        System.setProperty("minestom.tps", "100")
+        System.setProperty("joml.fastmath", "true")
+        System.setProperty("joml.sinLookup", "true")
+
         System.setOut(IoBuilder.forLogger(Logger.default).setLevel(Level.INFO).buildPrintStream())
         System.setErr(IoBuilder.forLogger(Logger.default).setLevel(Level.ERROR).buildPrintStream())
 
         Thread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
-        MinestomThread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
 
         val platform = when (Platform.get()) {
             Platform.WINDOWS -> "windows"
@@ -62,23 +64,25 @@ object Main {
         val viewDistanceStr = ServerProperties.VIEW_DISTANCE.toString()
         System.setProperty("minestom.chunk-view-distance", viewDistanceStr)
         System.setProperty("minestom.entity-view-distance", viewDistanceStr)
-        System.setProperty("minestom.tps", "100")
-        PxCylinderGeometry
 //        VelocityProxy.enable("9gXnEEDghmNr")
+
+        MinestomThread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
 
         val minecraftServer = MinecraftServer.init()
 
         MinecraftServer.getSchedulerManager().buildShutdownTask {
             Logger.info("Stopping server")
+
             Terminal.stop()
             PlayerData.writeAllPlayers()
+
             val closeMessage = Component.translatable("multiplayer.disconnect.server_shutdown")
             PlayerUtils.allPlayers.forEach { player ->
                 player.kick(closeMessage)
             }
-            runBlocking {
-                MyCoroutines.mustJobs.joinAll()
-            }
+
+            runBlocking { MyCoroutines.mustJobs.joinAll() }
+
             Thread.sleep(100)
         }
 
@@ -94,7 +98,7 @@ object Main {
             }
         )
 
-        MinecraftServer.getConnectionManager().setPlayerProvider { uuid, username, connection -> PlayerP(uuid, username, connection) }
+        MinecraftServer.getConnectionManager().setPlayerProvider(::PlayerP)
 
         ServerUtils
         ComponentUtils

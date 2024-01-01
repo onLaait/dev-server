@@ -6,9 +6,9 @@ import com.github.onlaait.fbw.geometry.Cylinder
 import com.github.onlaait.fbw.math.*
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Player
-import org.joml.AxisAngle4f
 
 class PlayerObject(var player: Player) : GameObject {
+
     override var isPenetrable = false
     override var isPenetrableByTeammate = true
 
@@ -21,6 +21,7 @@ class PlayerObject(var player: Player) : GameObject {
         set(pos) {
             player.teleport(pos)
         }
+
     override val hitbox: Set<Hitbox>
         get() {
             val pos = position.toVec3f()
@@ -28,22 +29,36 @@ class PlayerObject(var player: Player) : GameObject {
             val height = 1.40625f
             val body = Cylinder(pos + Vec3f(0f, height * 0.5f, 0f), radius = 0.5f, height = height)
 
-            val transform = Mat4f()
-                .setTranslation(pos + Vec3f(0f, 1.77785f, 0f))
+            val rot = Quatf().rotateYXZ(-position.yaw.toRad(), position.pitch.toRad(), 0f).normalize()
+
+            val t1 = Mat4f()
+                .setTranslation(pos + Vec3f(0f, 1.772625f, 0f))
                 .rotateAround(
-                    Quatf(AxisAngle4f(position.yaw.toRad(), Vec3f(0f, -1f, 0f)))
-                            * Quatf(AxisAngle4f(position.pitch.toRad(), Vec3f(1f, 0f, 0f))),
-                    0f, -0.3716f, 0f
+                    rot,
+                    0f, -0.366375f, 0f
                 )
-            val box = Box(
-                transform.getTranslation(Vec3f()),
-                transform.getNormalizedRotation(Quatf()),
-                0.264f, 0.12785f, 0.264f
+            val headTop = Box(
+                t1.getTranslation(Vec3f()),
+                rot,
+                0.264f, 0.132f, 0.264f
+            )
+
+            val t2 = Mat4f()
+                .setTranslation(pos + Vec3f(0f, 1.508625f, 0f))
+                .rotateAround(
+                    rot,
+                    0f, -0.102375f, 0f
+                )
+            val headBottom = Box(
+                t2.getTranslation(Vec3f()),
+                rot,
+                0.264f, 0.132f, 0.264f
             )
 
             return setOf(
                 Hitbox(body),
-                Hitbox(box, isHead = true)
+                Hitbox(headBottom),
+                Hitbox(headTop, isHead = true)
             )
         }
 }

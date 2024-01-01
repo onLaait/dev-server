@@ -78,12 +78,15 @@ object Event {
             Logger.info("${player.username}[${player.playerConnection.remoteAddress}] logged in with (entityId=${player.entityId},serverAddress=${player.playerConnection.serverAddress},locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
             player.respawnPoint = Pos(0.5, 1.0, 0.5)
             e.setSpawningInstance(Instance.instance)
+//            player.setReducedDebugScreenInformation(true)
+
             if (player.data.lastKnownName == player.username) {
                 broadcast(formatText("<green><bold>●</bold><white> ${player.username}"))
             } else {
                 broadcast(formatText("<green><bold>●</bold><white> ${player.username}<gray>(${player.data.lastKnownName})"))
                 player.data.lastKnownName = player.username
             }
+
             Audiences.players().sendTabList()
             ServerUtils.responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
             ServerUtils.responseData.refreshEntries()
@@ -144,8 +147,7 @@ object Event {
             PlayerData.write(player)
         }
 
-        val urlSerializer = LegacyComponentSerializer
-            .builder()
+        val urlSerializer = LegacyComponentSerializer.builder()
             .extractUrls(
                 Pattern.compile(
                     "https?://(www\\.)?[a-zA-Z0-9가-힣]{2,}\\.[a-zA-Z0-9가-힣]{2,}(\\.[a-zA-Z0-9가-힣]{2,})?(/\\S+)?"
@@ -179,7 +181,8 @@ object Event {
                 return@addListener
             }
             e.setChatFormat {
-                urlSerializer.deserialize("<${player.username}> ${e.message}")
+                Component.text("<${player.username}> ")
+                    .append(urlSerializer.deserialize(e.message))
                     .colorIfAbsent(NamedTextColor.WHITE)
                     .also { Logger.info(it) }
             }

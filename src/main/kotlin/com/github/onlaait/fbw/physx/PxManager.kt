@@ -26,6 +26,8 @@ object PxManager {
             mbvH34Desc = bvh34
         }
         cookingParams.suppressTriangleMeshRemapTable = true
+
+        PxCylinderGeometry
     }
 
     private class MyErrorCallback : PxErrorCallbackImpl() {
