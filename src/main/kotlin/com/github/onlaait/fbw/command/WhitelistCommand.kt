@@ -1,5 +1,6 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.ServerProperties
 import com.github.onlaait.fbw.system.Whitelist
@@ -9,7 +10,6 @@ import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.infoMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.CommandUtils.usage
 import com.github.onlaait.fbw.utils.PlayerUtils.allPlayers
 import com.github.onlaait.fbw.utils.StringUtils.toUUID
 import net.minestom.server.command.builder.Command
@@ -39,16 +39,14 @@ object WhitelistCommand : Command("whitelist") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(
-                usage(
-                    "${context.commandName} on",
-                    "${context.commandName} off",
-                    "${context.commandName} add <대상>",
-                    "${context.commandName} remove <대상>",
-                    "${context.commandName} list",
-                    "${context.commandName} reload"
-                )
-            )
+            sender.sendMsg(usage(
+                "${context.commandName} on",
+                "${context.commandName} off",
+                "${context.commandName} add <대상>",
+                "${context.commandName} remove <대상>",
+                "${context.commandName} list",
+                "${context.commandName} reload"
+            ))
         }
 
         val argOn = ArgumentLiteral("on")

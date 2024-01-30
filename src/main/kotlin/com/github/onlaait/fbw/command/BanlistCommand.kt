@@ -1,11 +1,11 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.system.BanSystem
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.errorMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.infoMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.CommandUtils.usage
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentLiteral

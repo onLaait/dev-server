@@ -1,11 +1,11 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.system.MuteSystem.isMuted
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.CommandUtils.usage
 import com.github.onlaait.fbw.utils.PlayerUtils.data
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentEntity

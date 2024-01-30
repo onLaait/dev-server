@@ -22,6 +22,7 @@ object CommandRegister {
                 GamemodeCommand,
                 HelpCommand,
                 InfoCommand,
+                KakcCommand,
                 KickCommand,
                 ListCommand,
                 MaxplayersCommand,

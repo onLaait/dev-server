@@ -1,7 +1,6 @@
 package com.github.onlaait.fbw.server
 
 import com.github.onlaait.fbw.system.BanSystem.kickIfBanned
-import com.github.onlaait.fbw.system.MuteSystem.isMuted
 import com.github.onlaait.fbw.system.OpSystem
 import com.github.onlaait.fbw.system.PlayerData
 import com.github.onlaait.fbw.system.ServerProperties
@@ -9,7 +8,6 @@ import com.github.onlaait.fbw.system.ServerStatus
 import com.github.onlaait.fbw.system.ServerStatus.sendTabList
 import com.github.onlaait.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.onlaait.fbw.utils.AudienceUtils.broadcast
-import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
 import com.github.onlaait.fbw.utils.ComponentUtils.plainText
 import com.github.onlaait.fbw.utils.ComponentUtils.render
 import com.github.onlaait.fbw.utils.PlayerUtils
@@ -29,6 +27,7 @@ import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.damage.DamageType
 import net.minestom.server.entity.fakeplayer.FakePlayer
+import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityDamageEvent
 import net.minestom.server.event.player.*
 import net.minestom.server.event.server.ServerListPingEvent
@@ -41,7 +40,6 @@ import net.minestom.server.network.packet.server.play.ExplosionPacket
 import net.minestom.server.timer.TaskSchedule
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.time.Duration.Companion.milliseconds
 
 object Event {
     init {
@@ -156,37 +154,16 @@ object Event {
                     .color(NamedTextColor.GRAY)
             )
             .build()
-        event.addListener(PlayerChatEvent::class.java) { e ->
-            val player = e.player
-            if (player.isMuted()) {
-                val muteTime = player.data.muteTime!!
-                if (muteTime == -1L) {
-                    player.warnMsg("채팅이 비활성화된 상태입니다.")
-                } else {
-                    val remainTime = (muteTime - System.currentTimeMillis()).milliseconds
-                        .toComponents { days, hours, minutes, seconds, _ ->
-                            return@toComponents if (days != 0L) {
-                                 "${days}일"
-                            } else if (hours != 0) {
-                                "${hours}시간"
-                            } else if (minutes != 0) {
-                                "${minutes}분"
-                            } else {
-                                "${seconds}초"
-                            }
-                        }
-                    player.warnMsg("채팅이 비활성화된 상태입니다. $remainTime 후에 활성화됩니다.")
+        event.addChild(
+            EventNode.all("chat").setPriority(0).addListener(PlayerChatEvent::class.java) { e ->
+                e.setChatFormat {
+                    Component.text("<${e.player.username}> ")
+                        .append(urlSerializer.deserialize(e.message))
+                        .colorIfAbsent(NamedTextColor.WHITE)
+                        .also { Logger.info(it) }
                 }
-                e.isCancelled = true
-                return@addListener
             }
-            e.setChatFormat {
-                Component.text("<${player.username}> ")
-                    .append(urlSerializer.deserialize(e.message))
-                    .colorIfAbsent(NamedTextColor.WHITE)
-                    .also { Logger.info(it) }
-            }
-        }
+        )
 
         event.addListener(PlayerCommandEvent::class.java) { e ->
             Logger.info("${e.player.username} issued server command: /${e.command}")

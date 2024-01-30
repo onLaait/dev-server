@@ -1,9 +1,12 @@
 plugins {
-    kotlin("jvm") version "1.9.21"
-    kotlin("plugin.serialization") version "1.9.21"
+    val kotlinVersion = "1.9.22"
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.serialization") version kotlinVersion
+
     id("java")
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
+
 group = "com.github.onlaait.fbw"
 version = "0.1"
 
@@ -66,7 +69,6 @@ tasks {
     }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+kotlin {
+    jvmToolchain(17)
 }

@@ -1,5 +1,6 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.command.argument.ArgumentUsername
 import com.github.onlaait.fbw.system.BanSystem.banIp
@@ -7,7 +8,6 @@ import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.CommandUtils.usage
 import com.github.onlaait.fbw.utils.PlayerUtils
 import com.github.onlaait.fbw.utils.PlayerUtils.ipAddress
 import com.github.onlaait.fbw.utils.StringUtils

@@ -106,8 +106,10 @@ object Main {
 
         PlayerData
         BanSystem
+        MuteSystem
         OpSystem
         Whitelist
+        if (ServerProperties.ENABLE_KAKC) Kakc
 
         Event
         CommandRegister

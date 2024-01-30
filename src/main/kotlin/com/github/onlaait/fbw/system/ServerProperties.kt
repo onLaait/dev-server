@@ -18,7 +18,7 @@ object ServerProperties {
 
     private object Info {
         const val filePath = "server.properties"
-        var init = false
+        var initialized = false
     }
 
     var MOTD: String by Property("§e테스트 §c서버")
@@ -35,6 +35,7 @@ object ServerProperties {
     var DEBUG: Boolean by Property(false)
     var WHITE_LIST: Boolean by Property(false)
     var ENFORCE_WHITELIST: Boolean by Property(false)
+    var ENABLE_KAKC: Boolean by Property(true)
 
     init {
         Logger.info("Loading properties")
@@ -60,8 +61,9 @@ object ServerProperties {
         DEBUG = (properties.getProperty("debug") ?: "").toBooleanStrictOrNull() ?: DEBUG
         WHITE_LIST = (properties.getProperty("white-list") ?: "").toBooleanStrictOrNull() ?: WHITE_LIST
         ENFORCE_WHITELIST = (properties.getProperty("enforce-whitelist") ?: "").toBooleanStrictOrNull() ?: ENFORCE_WHITELIST
+        ENABLE_KAKC = (properties.getProperty("enable-kakc") ?: "").toBooleanStrictOrNull() ?: ENABLE_KAKC
 
-        Info.init = true
+        Info.initialized = true
         write()
     }
 
@@ -86,7 +88,7 @@ object ServerProperties {
         override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
             if (this.value == value) return
             this.value = value
-            if (Info.init) write()
+            if (Info.initialized) write()
         }
     }
 }

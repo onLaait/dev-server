@@ -1,11 +1,11 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.CommandUtils
 import net.kyori.adventure.text.Component
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.Command
@@ -22,7 +22,7 @@ object KickCommand : Command("kick") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(CommandUtils.usage("${context.commandName} <대상> [사유]"))
+            sender.sendMsg(usage("${context.commandName} <대상> [사유]"))
         }
 
         val argPlayer = ArgumentEntity("플레이어")

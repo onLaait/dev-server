@@ -1,12 +1,12 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.ServerProperties
 import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.infoMsg
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.CommandUtils.usage
 import com.github.onlaait.fbw.utils.ServerUtils
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -19,8 +19,10 @@ object MotdCommand : Command("motd") {
         setCondition { sender, _ -> sender.isOp }
 
         setDefaultExecutor { sender, context ->
-            sender.sendMsg(usage("${context.commandName} get"))
-            sender.sendMsg(usage("${context.commandName} set <메시지>"))
+            sender.sendMsg(usage(
+                "${context.commandName} get",
+                "${context.commandName} set <메시지>"
+            ))
         }
 
         val argGet = ArgumentLiteral("get")

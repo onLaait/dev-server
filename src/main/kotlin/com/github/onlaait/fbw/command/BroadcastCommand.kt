@@ -1,10 +1,10 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.broadcast
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.CommandUtils.usage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minestom.server.command.builder.Command
 

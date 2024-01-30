@@ -1,7 +1,8 @@
-package com.github.onlaait.fbw.utils
+package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
+import com.github.onlaait.fbw.utils.TextUtils
 import com.github.onlaait.fbw.utils.TextUtils.YELLOW_QUESTION_MARK
 import com.github.onlaait.fbw.utils.TextUtils.formatText
 import net.kyori.adventure.text.Component
