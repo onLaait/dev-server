@@ -1,5 +1,6 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.system.ServerProperties
 import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
 import net.minestom.server.MinecraftServer
 import net.minestom.server.utils.callback.CommandCallback
@@ -13,7 +14,7 @@ object CommandRegister {
                 }
             }
 
-            arrayOf(
+            val cmds = mutableSetOf(
                 BanCommand,
                 BanipCommand,
                 BanlistCommand,
@@ -22,7 +23,6 @@ object CommandRegister {
                 GamemodeCommand,
                 HelpCommand,
                 InfoCommand,
-                KakcCommand,
                 KickCommand,
                 ListCommand,
                 MaxplayersCommand,
@@ -37,7 +37,10 @@ object CommandRegister {
                 TestCommand,
                 UnmuteCommand,
                 WhitelistCommand,
-            ).forEach {
+            )
+            if (ServerProperties.ENABLE_KAKC) cmds += KakcCommand
+
+            cmds.forEach {
                 register(it)
             }
         }

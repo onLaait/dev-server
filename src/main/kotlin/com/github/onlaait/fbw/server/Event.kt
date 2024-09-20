@@ -25,26 +25,18 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Player
-import net.minestom.server.entity.damage.DamageType
-import net.minestom.server.entity.fakeplayer.FakePlayer
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityDamageEvent
 import net.minestom.server.event.player.*
 import net.minestom.server.event.server.ServerListPingEvent
 import net.minestom.server.event.server.ServerTickMonitorEvent
-import net.minestom.server.network.packet.client.play.ClientChatSessionUpdatePacket
-import net.minestom.server.network.packet.client.play.ClientSetRecipeBookStatePacket
+import net.minestom.server.network.packet.server.common.DisconnectPacket
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket
-import net.minestom.server.network.packet.server.play.DisconnectPacket
-import net.minestom.server.network.packet.server.play.ExplosionPacket
-import net.minestom.server.timer.TaskSchedule
-import java.util.*
 import java.util.regex.Pattern
 
 object Event {
     init {
         val event = MinecraftServer.getGlobalEventHandler()
-        MinecraftServer.getPacketListenerManager()
         val packet = MinecraftServer.getPacketListenerManager()
 
         event.addListener(ServerListPingEvent::class.java) { e ->
@@ -57,25 +49,23 @@ object Event {
 
         event.addListener(AsyncPlayerPreLoginEvent::class.java) { e ->
             val player = e.player
-            if (player is FakePlayer) return@addListener
             Logger.info("UUID of player ${player.username} is ${player.uuid}")
+        }
+
+        event.addListener(AsyncPlayerConfigurationEvent::class.java) { e ->
+            val player = e.player
 
             if (OpSystem.opPlayers.find { it.uuid == player.uuid } != null) {
                 (player as PlayerP).isOp = true
+            } else if (player.kickIfBanned()) {
+            } else if (ServerProperties.WHITE_LIST && player.kickIfNotWhitelisted()) {
             } else if (ServerProperties.MAX_PLAYERS <= PlayerUtils.onlinePlayersCount) {
                 player.kick(Component.translatable("multiplayer.disconnect.server_full"))
-            } else if (ServerProperties.WHITE_LIST) {
-                player.kickIfNotWhitelisted()
             }
-            player.kickIfBanned()
-        }
 
-        event.addListener(PlayerLoginEvent::class.java) { e ->
-            val player = e.player
-            if (player is FakePlayer) return@addListener
             Logger.info("${player.username}[${player.playerConnection.remoteAddress}] logged in with (entityId=${player.entityId},serverAddress=${player.playerConnection.serverAddress},locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
             player.respawnPoint = Pos(0.5, 1.0, 0.5)
-            e.setSpawningInstance(Instance.instance)
+            e.spawningInstance = Instance.instance
 //            player.setReducedDebugScreenInformation(true)
 
             if (player.data.lastKnownName == player.username) {
@@ -88,21 +78,6 @@ object Event {
             Audiences.players().sendTabList()
             ServerUtils.responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
             ServerUtils.responseData.refreshEntries()
-
-            FakePlayer.initPlayer(UUID.randomUUID(), player.username) { fakePlayer ->
-                fakePlayer.displayName = Component.text("Shadow")
-                fakePlayer.setNoGravity(true)
-                fakePlayer.updateViewableRule { viewer -> viewer != player }
-
-                event.addListener(PlayerMoveEvent::class.java) a@{ e ->
-                    if (e.player != player) return@a
-                    fakePlayer.refreshPosition(e.newPosition.add(0.0, 2.0, 0.0))
-                }
-                event.addListener(PlayerDisconnectEvent::class.java) a@{ e ->
-                    if (e.player != player) return@a
-                    fakePlayer.remove()
-                }
-            }
 
             /*val hpBar = Entity(EntityType.TEXT_DISPLAY)
             hpBar.setNoGravity(true)
@@ -129,15 +104,8 @@ object Event {
             }*/
         }
 
-        event.addListener(PlayerLoginEvent::class.java) { e ->
-            val player = e.player
-            if (player !is FakePlayer) return@addListener
-            e.setSpawningInstance(Instance.instance)
-        }
-
         event.addListener(PlayerDisconnectEvent::class.java) { e ->
             val player = e.player
-            if (player is FakePlayer) return@addListener
             Logger.info("${player.username} lost connection")
             broadcast(formatText("<gray><bold>●</bold><white> ${player.username}"))
             ServerUtils.responseData.online = MinecraftServer.getConnectionManager().onlinePlayers.size
@@ -145,10 +113,11 @@ object Event {
             PlayerData.write(player)
         }
 
+
         val urlSerializer = LegacyComponentSerializer.builder()
             .extractUrls(
                 Pattern.compile(
-                    "https?://(www\\.)?[a-zA-Z0-9가-힣]{2,}\\.[a-zA-Z0-9가-힣]{2,}(\\.[a-zA-Z0-9가-힣]{2,})?(/\\S+)?"
+                    "https?://([a-zA-Z0-9가-힣-]+\\.)+([a-zA-Z]{2,}|한국)(/[a-zA-Z0-9-_.~!*'();:@&=+$,/?%#\\[\\]]*)?"
                 ),
                 Style.style(TextDecoration.UNDERLINED)
                     .color(NamedTextColor.GRAY)
@@ -177,16 +146,16 @@ object Event {
         event.addListener(EntityDamageEvent::class.java) { e ->
             e.isCancelled = true
             val entity = e.entity
-            Logger.debug { "$entity damaged: ${e.damageType}" }
-            if (entity !is Player) return@addListener
-            if (e.damageType == DamageType.VOID && !voidJumper.contains(entity)) {
+            Logger.debug { "$entity damaged: ${e.damage}" }
+/*            if (entity !is Player) return@addListener
+            if (!voidJumper.contains(entity)) {
                 voidJumper += entity
                 val pos = entity.position
                 entity.sendPacket(ExplosionPacket(pos.x, pos.y, pos.z, 0F, byteArrayOf(), 0F, 11F, 0F))
                 MinecraftServer.getSchedulerManager().buildTask {
                     voidJumper -= entity
                 }.delay(TaskSchedule.millis(500)).schedule()
-            }
+            }*/
         }
 
         event.addListener(PlayerPluginMessageEvent::class.java) { e ->
@@ -212,8 +181,8 @@ object Event {
             ServerStatus.onTick(e.tickMonitor.tickTime)
         }
 
-        packet.setListener(ClientSetRecipeBookStatePacket::class.java) { _, _ -> }
-        packet.setListener(ClientChatSessionUpdatePacket::class.java) { _, _ -> }
+//        packet.setListener(ClientSetRecipeBookStatePacket::class.java) { _, _ -> }
+//        packet.setListener(ClientChatSessionUpdatePacket::class.java) { _, _ -> }
 
         event.addListener(PlayerPacketEvent::class.java) { e ->
 //            println("-> ${e.packet}")
@@ -231,6 +200,7 @@ object Event {
                 is LoginDisconnectPacket -> {
                     disconnectInfo(packet.kickMessage)
                 }
+                else -> {}
             }
         }
     }

@@ -5,7 +5,7 @@ import com.github.onlaait.fbw.physx.PxManager
 import com.github.onlaait.fbw.server.*
 import com.github.onlaait.fbw.system.*
 import com.github.onlaait.fbw.utils.ComponentUtils
-import com.github.onlaait.fbw.utils.MyCoroutines
+import com.github.onlaait.fbw.utils.CoroutineManager
 import com.github.onlaait.fbw.utils.PlayerUtils
 import com.github.onlaait.fbw.utils.ServerUtils
 import kotlinx.coroutines.joinAll
@@ -17,8 +17,6 @@ import net.minestom.server.thread.MinestomThread
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.io.IoBuilder
-import org.lwjgl.system.Configuration
-import org.lwjgl.system.Platform
 import java.text.DecimalFormat
 
 object Main {
@@ -44,18 +42,8 @@ object Main {
 
         Thread.setDefaultUncaughtExceptionHandler(DefaultExceptionHandler)
 
-        val platform = when (Platform.get()) {
-            Platform.WINDOWS -> "windows"
-            Platform.LINUX -> "linux"
-            Platform.MACOSX -> if (Platform.getArchitecture() == Platform.Architecture.ARM64) "macos-arm64" else "macos"
-            else -> {
-                Logger.error("System platform not supported!")
-                return
-            }
-        }
-        Configuration.LIBRARY_PATH.set(ClassLoader.getSystemResource("lwjgl/$platform").path.removePrefix("/"))
-
         ServerProperties
+
         if (ServerProperties.DEBUG) {
             Configurator.setLevel("DefaultLogger", Level.DEBUG)
             Configurator.setLevel("ConsoleLogger", Level.DEBUG)
@@ -81,12 +69,12 @@ object Main {
                 player.kick(closeMessage)
             }
 
-            runBlocking { MyCoroutines.mustJobs.joinAll() }
+            runBlocking { CoroutineManager.mustJobs.joinAll() }
 
             Thread.sleep(100)
         }
 
-        MojangAuth.init()
+        if (ServerProperties.ONLINE_MODE) MojangAuth.init()
 
         MinecraftServer.setCompressionThreshold(
             ServerProperties.NETWORK_COMPRESSION_THRESHOLD.let {
@@ -102,7 +90,7 @@ object Main {
 
         ServerUtils
         ComponentUtils
-        MyCoroutines
+        CoroutineManager
 
         PlayerData
         BanSystem

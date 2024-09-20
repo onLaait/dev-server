@@ -2,10 +2,10 @@ package com.github.onlaait.fbw.system
 
 import com.github.onlaait.fbw.serializer.UUIDAsStringSerializer
 import com.github.onlaait.fbw.server.Logger
+import com.github.onlaait.fbw.utils.CoroutineManager
+import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
 import com.github.onlaait.fbw.utils.IterableUtils.removeSingle
 import com.github.onlaait.fbw.utils.JsonUtils
-import com.github.onlaait.fbw.utils.MyCoroutines
-import com.github.onlaait.fbw.utils.MyCoroutines.mustBeCompleted
 import com.github.onlaait.fbw.utils.PlayerUtils
 import com.github.onlaait.fbw.utils.PlayerUtils.ipAddress
 import kotlinx.coroutines.launch
@@ -35,7 +35,7 @@ object BanSystem {
             val path = Path(playersFilePath)
             if (path.isRegularFile()) {
                 try {
-                    bannedPlayers.addAll(JsonUtils.json.decodeFromString(path.reader().use { it.readText() }))
+                    bannedPlayers.addAll(JsonUtils.json.decodeFromString(path.readText()))
                 } catch (e: IllegalArgumentException) {
                     Logger.error("Something is wrong with the format of '${path.name}', initializing it")
                 }
@@ -48,7 +48,7 @@ object BanSystem {
             val path = Path(ipsFilePath)
             if (path.isRegularFile()) {
                 try {
-                    bannedIps.addAll(JsonUtils.json.decodeFromString(path.reader().use { it.readText() }))
+                    bannedIps.addAll(JsonUtils.json.decodeFromString(path.readText()))
                 } catch (e: IllegalArgumentException) {
                     Logger.error("Something is wrong with the format of '${path.name}', initializing it")
                 }
@@ -58,12 +58,12 @@ object BanSystem {
         }
     }
 
-    fun writePlayers() = MyCoroutines.fileOutputScope.launch {
+    fun writePlayers() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing banned players" }
         Path(playersFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers))) }
     }.mustBeCompleted()
 
-    fun writeIps() = MyCoroutines.fileOutputScope.launch {
+    fun writeIps() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing banned ips" }
         Path(ipsFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps))) }
     }.mustBeCompleted()

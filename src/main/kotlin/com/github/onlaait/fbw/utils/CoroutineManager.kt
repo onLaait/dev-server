@@ -3,7 +3,7 @@ package com.github.onlaait.fbw.utils
 import kotlinx.coroutines.*
 
 @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-object MyCoroutines {
+object CoroutineManager {
 
     val mustJobs = mutableListOf<Job>()
 

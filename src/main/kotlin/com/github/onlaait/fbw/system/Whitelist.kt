@@ -3,10 +3,10 @@ package com.github.onlaait.fbw.system
 import com.github.onlaait.fbw.serializer.UUIDAsStringSerializer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.system.OpSystem.isOp
+import com.github.onlaait.fbw.utils.CoroutineManager
+import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
 import com.github.onlaait.fbw.utils.IterableUtils.removeSingle
 import com.github.onlaait.fbw.utils.JsonUtils
-import com.github.onlaait.fbw.utils.MyCoroutines
-import com.github.onlaait.fbw.utils.MyCoroutines.mustBeCompleted
 import com.github.onlaait.fbw.utils.PlayerUtils.allPlayers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
@@ -31,7 +31,7 @@ object Whitelist {
         val path = Path(filePath)
         if (path.isRegularFile()) {
             try {
-                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(path.reader().use { it.readText() })
+                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(path.readText())
                 whitelistedPlayers.clear()
                 whitelistedPlayers.addAll(list)
             } catch (e: Throwable) {
@@ -42,7 +42,7 @@ object Whitelist {
         }
     }
 
-    fun write() = MyCoroutines.fileOutputScope.launch {
+    fun write() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing whitelist" }
         Path(filePath).writer().use {
             it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))

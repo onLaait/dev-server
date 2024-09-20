@@ -42,6 +42,7 @@ object PxCylinderGeometry {
 
         val pxConvexMesh = PxTopLevelFunctions.CreateConvexMesh(PxManager.cookingParams, desc)
         vec3Vector.destroy()
+
         pxConvexMesh
     }
 }

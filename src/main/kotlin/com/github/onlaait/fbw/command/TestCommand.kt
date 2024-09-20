@@ -11,7 +11,6 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import net.minestom.server.MinecraftServer
-import net.minestom.server.attribute.Attribute
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentWord
 import net.minestom.server.command.builder.arguments.number.ArgumentDouble
@@ -20,6 +19,7 @@ import net.minestom.server.coordinate.Vec
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.Player
+import net.minestom.server.entity.attribute.Attribute
 import net.minestom.server.potion.Potion
 import net.minestom.server.potion.PotionEffect
 import net.minestom.server.scoreboard.Sidebar
@@ -131,8 +131,8 @@ object TestCommand : Command("test") {
                 }
                 "haste" -> {
                     val player = sender as Player
-                    player.getAttribute(Attribute.ATTACK_SPEED).baseValue = 1024F
-                    player.addEffect(Potion(PotionEffect.HASTE, Byte.MAX_VALUE, Int.MAX_VALUE))
+                    player.getAttribute(Attribute.GENERIC_ATTACK_SPEED).baseValue = 1024.0
+                    player.addEffect(Potion(PotionEffect.HASTE, Byte.MAX_VALUE, Potion.INFINITE_DURATION))
                 }
             }
         }, argWord)

@@ -2,8 +2,8 @@ package com.github.onlaait.fbw.system
 
 import com.charleskorn.kaml.Yaml
 import com.github.onlaait.fbw.server.Logger
-import com.github.onlaait.fbw.utils.MyCoroutines
-import com.github.onlaait.fbw.utils.MyCoroutines.mustBeCompleted
+import com.github.onlaait.fbw.utils.CoroutineManager
+import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
 import com.github.onlaait.fbw.utils.PlayerUtils
 import com.github.onlaait.fbw.utils.PlayerUtils.data
 import kotlinx.coroutines.launch
@@ -26,13 +26,13 @@ object PlayerData {
         Logger.debug { "Loading player data of ${player.username}" }
         val path = getPath(player)
         return if (path.isRegularFile()) {
-            Yaml.default.decodeFromString(path.reader().use { it.readText() })
+            Yaml.default.decodeFromString(path.readText())
         } else {
             PlayerData(player.username)
         }
     }
 
-    fun write(player: Player) = MyCoroutines.fileOutputScope.launch {
+    fun write(player: Player) = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing player data of ${player.username}" }
         getPath(player).writer().use { it.write(Yaml.default.encodeToString(player.data)) }
     }.mustBeCompleted()
