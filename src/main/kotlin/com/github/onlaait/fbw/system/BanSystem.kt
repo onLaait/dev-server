@@ -2,12 +2,8 @@ package com.github.onlaait.fbw.system
 
 import com.github.onlaait.fbw.serializer.UUIDAsStringSerializer
 import com.github.onlaait.fbw.server.Logger
-import com.github.onlaait.fbw.utils.CoroutineManager
+import com.github.onlaait.fbw.utils.*
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
-import com.github.onlaait.fbw.utils.IterableUtils.removeSingle
-import com.github.onlaait.fbw.utils.JsonUtils
-import com.github.onlaait.fbw.utils.PlayerUtils
-import com.github.onlaait.fbw.utils.PlayerUtils.ipAddress
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -35,7 +31,7 @@ object BanSystem {
             val path = Path(playersFilePath)
             if (path.isRegularFile()) {
                 try {
-                    bannedPlayers.addAll(JsonUtils.json.decodeFromString(path.readText()))
+                    bannedPlayers.addAll(JSON.decodeFromString(path.readText()))
                 } catch (e: IllegalArgumentException) {
                     Logger.error("Something is wrong with the format of '${path.name}', initializing it")
                 }
@@ -48,7 +44,7 @@ object BanSystem {
             val path = Path(ipsFilePath)
             if (path.isRegularFile()) {
                 try {
-                    bannedIps.addAll(JsonUtils.json.decodeFromString(path.readText()))
+                    bannedIps.addAll(JSON.decodeFromString(path.readText()))
                 } catch (e: IllegalArgumentException) {
                     Logger.error("Something is wrong with the format of '${path.name}', initializing it")
                 }
@@ -60,12 +56,12 @@ object BanSystem {
 
     fun writePlayers() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing banned players" }
-        Path(playersFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedPlayers))) }
+        Path(playersFilePath).writer().use { it.write(cleanJson(JSON.encodeToString(bannedPlayers))) }
     }.mustBeCompleted()
 
     fun writeIps() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing banned ips" }
-        Path(ipsFilePath).writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(bannedIps))) }
+        Path(ipsFilePath).writer().use { it.write(cleanJson(JSON.encodeToString(bannedIps))) }
     }.mustBeCompleted()
 
     @Serializable
@@ -82,16 +78,16 @@ object BanSystem {
         val reason: String?
     )
 
-    fun Player.ban(reason: String?) {
+    fun Player.ban(reason: String? = null) {
         kick(getBanMessage(reason))
         bannedPlayers.add(BannedPlayer(uuid, username, reason))
         writePlayers()
     }
 
-    fun banIp(ip: String, reason: String?): List<Player>? {
-        if (bannedIps.find { it.ip == ip } != null) return null
+    fun banIp(ip: String, reason: String? = null): List<Player>? {
+        if (bannedIps.any { it.ip == ip }) return null
         bannedIps.add(BannedIp(ip, reason))
-        val targets = PlayerUtils.allPlayers.filter { it.ipAddress == ip }
+        val targets = allPlayers.filter { it.ipAddress == ip }
         targets.forEach { player ->
             player.kick(getBanMessage(reason))
         }
@@ -137,11 +133,10 @@ object BanSystem {
         return false
     }
 
-    private fun getBanMessage(reason: String?): TranslatableComponent {
-        return if (reason == null) {
+    private fun getBanMessage(reason: String?): TranslatableComponent =
+        if (reason == null) {
             Component.translatable("multiplayer.disconnect.banned")
         } else {
             Component.translatable("multiplayer.disconnect.banned.reason", Component.text(reason))
         }
-    }
 }

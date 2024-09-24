@@ -1,7 +1,7 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
+import com.github.onlaait.fbw.utils.sendMsg
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.minestom.server.command.CommandSender
@@ -48,7 +48,7 @@ object GamemodeCommand : Command("gamemode", "gm") {
         //Command Syntax for /gamemode <gamemode>
         addSyntax({ sender: CommandSender, context: CommandContext ->
             //Limit execution to players only
-            if (!sender.isPlayer) {
+            if (sender !is Player) {
                 sender.sendMsg(
                     Component.text(
                         "Please run this command in-game.",
@@ -59,7 +59,7 @@ object GamemodeCommand : Command("gamemode", "gm") {
             }
 
             //Check permission, this could be replaced with hasPermission
-            if (!sender.asPlayer().isOp) {
+            if (!sender.isOp) {
                 sender.sendMsg(
                     Component.text(
                         "You don't have permission to use this command.",
@@ -71,14 +71,14 @@ object GamemodeCommand : Command("gamemode", "gm") {
             val mode = context.get(gamemode)
 
             //Set the gamemode for the sender
-            executeSelf(sender.asPlayer(), mode)
+            executeSelf(sender, mode)
         }, gamemode)
 
         //Command Syntax for /gamemode <gamemode> [targets]
         addSyntax({ sender: CommandSender, context: CommandContext ->
             //Check permission for players only
             //This allows the console to use this syntax too
-            if (sender.isPlayer && !sender.asPlayer().isOp) {
+            if (sender is Player && !sender.isOp) {
                 sender.sendMsg(
                     Component.text(
                         "You don't have permission to use this command.",
@@ -102,7 +102,7 @@ object GamemodeCommand : Command("gamemode", "gm") {
     private fun executeOthers(sender: CommandSender, mode: GameMode, entities: List<Entity>) {
         if (entities.isEmpty()) {
             //If there are no players that could be modified, display an error message
-            if (sender.isPlayer) sender.sendMsg(
+            if (sender is Player) sender.sendMsg(
                 Component.translatable(
                     "argument.entity.notfound.player",
                     NamedTextColor.RED
@@ -115,7 +115,7 @@ object GamemodeCommand : Command("gamemode", "gm") {
                 if (entity === sender) {
                     //If the player is the same as the sender, call
                     //executeSelf to display one message instead of two
-                    executeSelf(sender.asPlayer(), mode)
+                    executeSelf(sender, mode)
                 } else {
                     entity.gameMode = mode
                     val gamemodeString = "gameMode." + mode.name.lowercase()

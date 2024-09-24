@@ -1,16 +1,10 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.command.argument.ArgumentUsername
 import com.github.onlaait.fbw.system.BanSystem.banIp
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.PlayerUtils
-import com.github.onlaait.fbw.utils.PlayerUtils.ipAddress
-import com.github.onlaait.fbw.utils.StringUtils
+import com.github.onlaait.fbw.utils.*
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.CommandContext
@@ -36,13 +30,13 @@ object BanipCommand : Command("ban-ip") {
         fun banipTask(sender: CommandSender, context: CommandContext) {
             val target = context[argTarget]
             val address = if (target.contains('.')) {
-                if (!StringUtils.isIPv4Address(target)) {
+                if (!target.isIPv4Address()) {
                     sender.warnMsg(MSG_INVALID)
                     return
                 }
                 target
             } else {
-                val player = PlayerUtils.allPlayers.find { it.username.equals(target, ignoreCase = true) }
+                val player = allPlayers.find { it.username.equals(target, ignoreCase = true) }
                 if (player == null) {
                     sender.warnMsg(MSG_INVALID)
                     return

@@ -1,15 +1,10 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.serializer.UUIDAsStringSerializer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.CoroutineManager
+import com.github.onlaait.fbw.utils.*
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
-import com.github.onlaait.fbw.utils.IterableUtils.removeSingle
-import com.github.onlaait.fbw.utils.JsonUtils
-import com.github.onlaait.fbw.utils.PlayerUtils.allPlayers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.minestom.server.entity.Player
@@ -18,8 +13,9 @@ import kotlin.io.path.*
 
 object Whitelist {
 
-    private const val filePath = "whitelist.json"
-    val whitelistedPlayers = mutableSetOf<WhitelistedPlayer>()
+    private val PATH = Path("whitelist.json")
+
+    val whitelistedPlayers = mutableSetOf<UuidAndName>()
 
     init {
         read()
@@ -28,24 +24,23 @@ object Whitelist {
 
     fun read() {
         Logger.debug { "Loading whitelist" }
-        val path = Path(filePath)
-        if (path.isRegularFile()) {
+        if (PATH.isRegularFile()) {
             try {
-                val list: Collection<WhitelistedPlayer> = JsonUtils.json.decodeFromString(path.readText())
+                val list: Set<UuidAndName> = JSON.decodeFromString(PATH.readText())
                 whitelistedPlayers.clear()
                 whitelistedPlayers.addAll(list)
             } catch (e: Throwable) {
-                Logger.error("Something is wrong with the format of '${path.name}', initializing it")
+                Logger.error("Something is wrong with the format of '${PATH.name}', initializing it")
             }
         } else {
-            path.writer().use { it.write("[]") }
+            PATH.writer().use { it.write("[]") }
         }
     }
 
     fun write() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing whitelist" }
-        Path(filePath).writer().use {
-            it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(whitelistedPlayers)))
+        PATH.writer().use {
+            it.write(cleanJson(JSON.encodeToString(whitelistedPlayers)))
         }
     }.mustBeCompleted()
 
@@ -64,8 +59,8 @@ object Whitelist {
     }
 
     fun add(uuid: UUID, name: String): Boolean {
-        if (whitelistedPlayers.find { it.uuid == uuid } != null) return false
-        val added = whitelistedPlayers.add(WhitelistedPlayer(uuid, name))
+        if (whitelistedPlayers.any { it.uuid == uuid }) return false
+        val added = whitelistedPlayers.add(UuidAndName(uuid, name))
         if (added) write()
         return added
     }
@@ -76,7 +71,7 @@ object Whitelist {
         val removed = whitelistedPlayers.removeSingle { it.uuid == uuid }
         if (removed) {
             write()
-            if (ServerProperties.WHITE_LIST && ServerProperties.ENFORCE_WHITELIST) {
+            if (ServerProperties.run { WHITE_LIST && ENFORCE_WHITELIST }) {
                 allPlayers.find { it.uuid == uuid }?.kickIfNotWhitelisted()
             }
         }
@@ -98,20 +93,11 @@ object Whitelist {
     fun remove(player: Player): Boolean = remove(player.uuid)
     
     val Player.isWhitelisted: Boolean
-        get() = (whitelistedPlayers.find { it.uuid == this.uuid } != null)
+        get() = (whitelistedPlayers.any { it.uuid == uuid })
 
     fun Player.kickIfNotWhitelisted(): Boolean {
-        if (!this.isOp && !this.isWhitelisted) {
-            kick(Component.translatable("multiplayer.disconnect.not_whitelisted"))
-            return true
-        }
-        return false
+        if (isOp || isWhitelisted) return false
+        kick(Component.translatable("multiplayer.disconnect.not_whitelisted"))
+        return true
     }
-
-    @Serializable
-    data class WhitelistedPlayer(
-        @Serializable(with = UUIDAsStringSerializer::class)
-        val uuid: UUID,
-        val name: String
-    )
 }

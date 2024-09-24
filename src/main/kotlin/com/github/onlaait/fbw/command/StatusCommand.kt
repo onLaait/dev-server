@@ -1,8 +1,8 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.system.ServerStatus
-import com.github.onlaait.fbw.utils.AudienceUtils.infoMsg
 import com.github.onlaait.fbw.utils.CoroutineManager
+import com.github.onlaait.fbw.utils.infoMsg
 import kotlinx.coroutines.launch
 import net.minestom.server.MinecraftServer
 import net.minestom.server.ServerFlag

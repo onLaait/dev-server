@@ -46,16 +46,14 @@ object BlockUtils {
     }
 
     fun getTargetBlockPoint(origin: Vec, direction: Vec, maxDistance: Double, instance: Instance): Point? {
-        BlockIterator(origin, direction, 0.0, maxDistance).let {
-            var block: Block
-            while (it.hasNext()) {
-                val position = it.next()
-                if (position.y() !in -64.0..319.0 || !instance.isChunkLoaded(position)) return null
-                block = instance.getBlock(position)
-                if (!block.isAir && !block.isLiquid && block != Block.BARRIER) return position // TODO: 블록 세부 히트박스 계산
-            }
-            return null
+        val iter = BlockIterator(origin, direction, 0.0, maxDistance)
+        while (iter.hasNext()) {
+            val position = iter.next()
+            if (position.y() !in -64.0..319.0 || !instance.isChunkLoaded(position)) return null
+            val block = instance.getBlock(position)
+            if (!block.isAir && !block.isLiquid && block != Block.BARRIER) return position // TODO: 블록 세부 히트박스 계산
         }
+        return null
     }
 
     fun getTargetBlockIntersection(origin: Vec, direction: Vec, maxDistance: Double, instance: Instance): Double? {

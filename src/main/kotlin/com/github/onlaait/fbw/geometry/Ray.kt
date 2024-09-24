@@ -48,7 +48,5 @@ class Ray(var origin: Vec3f, var direction: Vec3f, var maxDistance: Float = MAX_
         }
     }
 
-    fun copy(): Ray {
-        return Ray(origin.clone() as Vec3f, direction.clone() as Vec3f, maxDistance)
-    }
+    fun copy(): Ray = Ray(origin.clone() as Vec3f, direction.clone() as Vec3f, maxDistance)
 }

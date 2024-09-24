@@ -8,8 +8,7 @@ import java.util.*
 class PlayerP(uuid: UUID, username: String, playerConnection: PlayerConnection) :
     Player(uuid, username, playerConnection) {
 
-    var isOp: Boolean = false
     var brand: String? = null
 
-    val data: PlayerData.PlayerData by lazy { PlayerData.read(this) }
+    val data: PlayerData by lazy { PlayerData.read(this) }
 }

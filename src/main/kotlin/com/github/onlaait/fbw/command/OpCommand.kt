@@ -1,14 +1,10 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.system.OpSystem
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.OpSystem.setOp
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.PlayerUtils
-import com.github.onlaait.fbw.utils.StringUtils.toUUID
+import com.github.onlaait.fbw.system.UuidAndName
+import com.github.onlaait.fbw.utils.*
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentEntity
 import net.minestom.server.command.builder.suggestion.SuggestionEntry
@@ -32,7 +28,7 @@ object OpCommand : Command("op") {
         val argPlayer = ArgumentEntity("플레이어")
             .onlyPlayers(true)
             .setSuggestionCallback { _, _, suggestion ->
-                PlayerUtils.allPlayers.filter { !it.isOp }.forEach { suggestion.addEntry(SuggestionEntry(it.username)) }
+                allPlayers.filter { !it.isOp }.forEach { suggestion.addEntry(SuggestionEntry(it.username)) }
             }
 
         addSyntax({ sender, context ->
@@ -57,13 +53,13 @@ object OpCommand : Command("op") {
                     return@thread
                 }
                 val uuid = user["id"].asString.toUUID()
-                if (OpSystem.opPlayers.find { it.uuid == uuid } != null) {
+                if (OpSystem.opPlayers.any { it.uuid == uuid }) {
                     sender.warnMsg(MSG_FAILED)
                     return@thread
                 }
                 val name = user["name"].asString
                 OpSystem.run {
-                    opPlayers.add(OpSystem.OpPlayer(uuid, name))
+                    opPlayers += UuidAndName(uuid, name)
                     write()
                 }
                 sender.alertMsg(String.format(MSG_SUCCESS, name))

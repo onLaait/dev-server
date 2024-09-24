@@ -4,20 +4,19 @@ import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.arguments.Argument
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException
 import net.minestom.server.utils.binary.BinaryWriter
-import java.util.regex.Pattern
 
 class ArgumentUsername(id: String) : Argument<String>(id) {
 
-    companion object {
-        private const val INVALID_USERNAME = 1
-        private val USERNAME_PATTERN = Pattern.compile("[a-zA-Z0-9_]{1,16}")
+    private companion object {
+        const val INVALID_USERNAME = 1
+        val USERNAME_RGX = Regex("^[a-zA-Z0-9_]{1,16}$")
     }
 
     private var strict = true
 
     @Throws(ArgumentSyntaxException::class)
     override fun parse(sender: CommandSender, input: String): String {
-        if (this.strict && !USERNAME_PATTERN.matcher(input).matches()) {
+        if (strict && !USERNAME_RGX.matches(input)) {
             throw ArgumentSyntaxException(
                 "Invalid username",
                 input,

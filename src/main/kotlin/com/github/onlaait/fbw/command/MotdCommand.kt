@@ -1,13 +1,12 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.ServerProperties
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.infoMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
 import com.github.onlaait.fbw.utils.ServerUtils
+import com.github.onlaait.fbw.utils.alertMsg
+import com.github.onlaait.fbw.utils.infoMsg
+import com.github.onlaait.fbw.utils.sendMsg
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer

@@ -1,25 +1,23 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.serializer.UUIDAsStringSerializer
 import com.github.onlaait.fbw.server.Logger
-import com.github.onlaait.fbw.server.PlayerP
 import com.github.onlaait.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.onlaait.fbw.utils.CoroutineManager
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
-import com.github.onlaait.fbw.utils.JsonUtils
+import com.github.onlaait.fbw.utils.JSON
+import com.github.onlaait.fbw.utils.cleanJson
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.ConsoleSender
 import net.minestom.server.entity.Player
-import java.util.*
 import kotlin.io.path.*
 
 object OpSystem {
 
     private val PATH = Path("ops.json")
-    val opPlayers = mutableSetOf<OpPlayer>()
+
+    val opPlayers = mutableSetOf<UuidAndName>()
 
     init {
         read()
@@ -30,7 +28,7 @@ object OpSystem {
         Logger.debug { "Loading ops" }
         if (PATH.isRegularFile()) {
             try {
-                opPlayers.addAll(JsonUtils.json.decodeFromString(PATH.readText()))
+                opPlayers.addAll(JSON.decodeFromString(PATH.readText()))
             } catch (e: IllegalArgumentException) {
                 Logger.warn("Something is wrong with the format of '${PATH.name}', initializing it")
             }
@@ -41,41 +39,31 @@ object OpSystem {
 
     fun write() = CoroutineManager.fileOutputScope.launch {
         Logger.debug { "Storing ops" }
-        PATH.writer().use { it.write(JsonUtils.cleanJson(JsonUtils.json.encodeToString(opPlayers))) }
+        PATH.writer().use { it.write(cleanJson(JSON.encodeToString(opPlayers))) }
     }.mustBeCompleted()
-
-    @Serializable
-    data class OpPlayer(
-        @Serializable(with = UUIDAsStringSerializer::class)
-        val uuid: UUID,
-        val name: String
-    )
-
-    val CommandSender.isOp: Boolean
-        get() {
-            return this is ConsoleSender || (this as PlayerP).isOp
-        }
 
     fun Player.setOp(value: Boolean): Boolean {
         if (value) {
-            if (this.isOp) return false
-            (this as PlayerP).isOp = true
-            opPlayers.add(OpPlayer(this.uuid, this.username))
+            if (isOp) return false
+            opPlayers.add(UuidAndName(uuid, username))
         } else {
-            if (!this.isOp) return false
-            (this as PlayerP).isOp = false
-            for (e in opPlayers) {
-                if (e.uuid == this.uuid) {
-                    opPlayers.remove(e)
-                    if (ServerProperties.WHITE_LIST && ServerProperties.ENFORCE_WHITELIST) {
-                        this.kickIfNotWhitelisted()
-                    }
-                    break
-                }
+            if (!isOp) return false
+            val iter = opPlayers.iterator()
+            for (e in iter) {
+                if (e.uuid != uuid) continue
+                iter.remove()
+                if (ServerProperties.run { WHITE_LIST && ENFORCE_WHITELIST }) kickIfNotWhitelisted()
+                break
             }
         }
-        this.refreshCommands()
+        refreshCommands()
         write()
         return true
     }
+
+    val Player.isOp: Boolean
+        get() = opPlayers.any { it.uuid == uuid }
+
+    val CommandSender.isOp: Boolean
+        get() = this is ConsoleSender || this is Player && isOp
 }

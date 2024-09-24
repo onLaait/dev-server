@@ -1,21 +1,13 @@
 package com.github.onlaait.fbw.server
 
 import com.github.onlaait.fbw.system.BanSystem.kickIfBanned
-import com.github.onlaait.fbw.system.OpSystem
+import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.PlayerData
 import com.github.onlaait.fbw.system.ServerProperties
 import com.github.onlaait.fbw.system.ServerStatus
 import com.github.onlaait.fbw.system.ServerStatus.sendTabList
 import com.github.onlaait.fbw.system.Whitelist.kickIfNotWhitelisted
-import com.github.onlaait.fbw.utils.AudienceUtils.broadcast
-import com.github.onlaait.fbw.utils.ComponentUtils.plainText
-import com.github.onlaait.fbw.utils.ComponentUtils.render
-import com.github.onlaait.fbw.utils.PlayerUtils
-import com.github.onlaait.fbw.utils.PlayerUtils.brand
-import com.github.onlaait.fbw.utils.PlayerUtils.data
-import com.github.onlaait.fbw.utils.ServerUtils
-import com.github.onlaait.fbw.utils.ServerUtils.refreshEntries
-import com.github.onlaait.fbw.utils.TextUtils.formatText
+import com.github.onlaait.fbw.utils.*
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
@@ -55,11 +47,12 @@ object Event {
         event.addListener(AsyncPlayerConfigurationEvent::class.java) { e ->
             val player = e.player
 
-            if (OpSystem.opPlayers.find { it.uuid == player.uuid } != null) {
-                (player as PlayerP).isOp = true
-            } else if (player.kickIfBanned()) {
-            } else if (ServerProperties.WHITE_LIST && player.kickIfNotWhitelisted()) {
-            } else if (ServerProperties.MAX_PLAYERS <= PlayerUtils.onlinePlayersCount) {
+            if (
+                !player.isOp &&
+                !player.kickIfBanned() &&
+                (!ServerProperties.WHITE_LIST || !player.kickIfNotWhitelisted()) &&
+                ServerProperties.MAX_PLAYERS <= allPlayersCount
+            ) {
                 player.kick(Component.translatable("multiplayer.disconnect.server_full"))
             }
 

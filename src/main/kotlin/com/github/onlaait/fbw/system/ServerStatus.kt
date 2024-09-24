@@ -1,10 +1,10 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.utils.PlayerUtils
-import com.github.onlaait.fbw.utils.TextUtils
+import com.github.onlaait.fbw.utils.allPlayersCount
+import com.github.onlaait.fbw.utils.formatText
 import com.sun.management.OperatingSystemMXBean
 import net.kyori.adventure.audience.Audience
-import net.minestom.server.MinecraftServer
+import net.minestom.server.ServerFlag
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.entity.Player
 import java.lang.management.ManagementFactory
@@ -30,8 +30,8 @@ object ServerStatus {
         get() = totalMem - freeMem
 
 
-    private val maxTps = MinecraftServer.TICK_PER_SECOND.toDouble()
-    private val lastTicks = ArrayBlockingQueue<Double>(MinecraftServer.TICK_PER_SECOND * 5)
+    private val maxTps = ServerFlag.SERVER_TICKS_PER_SECOND.toDouble()
+    private val lastTicks = ArrayBlockingQueue<Double>(ServerFlag.SERVER_TICKS_PER_SECOND * 5)
     val mspt: Double
         get() = lastTicks.average()
     val tps: Double
@@ -75,14 +75,14 @@ object ServerStatus {
         val header = content.first
         val footer = content.second
 
-        val onlinePlayersCount = PlayerUtils.onlinePlayersCount
+        val onlinePlayersCount = allPlayersCount
         val maxPlayers = ServerProperties.MAX_PLAYERS
 
         this.forEachAudience { audience ->
             if (audience !is Player) return@forEachAudience
             audience.sendPlayerListHeaderAndFooter(
-                TextUtils.formatText(String.format(header, onlinePlayersCount, maxPlayers)),
-                TextUtils.formatText(String.format(footer, audience.latency))
+                formatText(String.format(header, onlinePlayersCount, maxPlayers)),
+                formatText(String.format(footer, audience.latency))
             )
         }
     }

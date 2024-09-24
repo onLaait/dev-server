@@ -1,12 +1,11 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.system.BanSystem
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.StringUtils
+import com.github.onlaait.fbw.utils.alertMsg
+import com.github.onlaait.fbw.utils.isIPv4Address
+import com.github.onlaait.fbw.utils.sendMsg
+import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentString
 import net.minestom.server.command.builder.suggestion.SuggestionEntry
@@ -30,7 +29,7 @@ object PardonipCommand : Command("pardon-ip", "unban-ip") {
 
         addSyntax({ sender, context ->
             val ipAddress = context[argIpAddress]
-            if (!StringUtils.isIPv4Address(ipAddress)) {
+            if (!ipAddress.isIPv4Address()) {
                 sender.warnMsg(MSG_INVALID)
                 return@addSyntax
             }

@@ -13,10 +13,10 @@ import kotlin.math.sin
 
 object PxCylinderGeometry {
 
-    private val unitCylinder = makePxConvexMesh(convexMeshPoints(1f, 1f))
+    private val UNIT_CYLINDER = makePxConvexMesh(convexMeshPoints(1f, 1f))
 
     fun createAt(mem: MemoryStack, length: Float, radius: Float): PxConvexMeshGeometry {
-        return PxConvexMeshGeometry(unitCylinder, mem.createPxMeshScale(Vec3f(length, radius, radius)))
+        return PxConvexMeshGeometry(UNIT_CYLINDER, mem.createPxMeshScale(Vec3f(length, radius, radius)))
     }
 
     private fun convexMeshPoints(length: Float, radius: Float, n: Int = 10): List<Vec3f> {
@@ -25,8 +25,8 @@ object PxCylinderGeometry {
             val a = i * 2f * PI.toFloat() / n
             val y = cos(a) * radius
             val z = sin(a) * radius
-            points.add(Vec3f(length * -0.5f, y, z))
-            points.add(Vec3f(length * 0.5f, y, z))
+            points += Vec3f(length * -0.5f, y, z)
+            points += Vec3f(length * 0.5f, y, z)
         }
         return points
     }

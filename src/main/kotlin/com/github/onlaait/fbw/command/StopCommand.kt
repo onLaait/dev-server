@@ -1,7 +1,7 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
+import com.github.onlaait.fbw.utils.alertMsg
 import net.minestom.server.MinecraftServer
 import net.minestom.server.command.builder.Command
 

@@ -8,5 +8,5 @@ interface GameObject {
     var isPenetrable: Boolean
     var isPenetrableByTeammate: Boolean
     var position: Pos
-    val hitbox: Set<Hitbox>
+    val hitbox: Array<Hitbox>
 }

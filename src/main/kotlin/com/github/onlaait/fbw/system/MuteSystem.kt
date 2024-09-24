@@ -1,7 +1,7 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.PlayerUtils.data
+import com.github.onlaait.fbw.utils.data
+import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Player
 import net.minestom.server.event.player.PlayerChatEvent

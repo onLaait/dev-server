@@ -2,7 +2,6 @@ package com.github.onlaait.fbw.utils
 
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.system.ServerProperties
-import com.github.onlaait.fbw.utils.IterableUtils.takeRandom
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minestom.server.MinecraftServer
 import net.minestom.server.ping.ResponseData
@@ -42,10 +41,10 @@ object ServerUtils {
                 favicon = "data:image/png;base64,$base64Str"
             }
         }
+}
 
-    fun ResponseData.refreshEntries() {
-        if (ServerProperties.HIDE_ONLINE_PLAYERS) return
-        clearEntries()
-        addEntries(MinecraftServer.getConnectionManager().onlinePlayers.takeRandom(15))
-    }
+fun ResponseData.refreshEntries() {
+    if (ServerProperties.HIDE_ONLINE_PLAYERS) return
+    clearEntries()
+    addEntries(MinecraftServer.getConnectionManager().onlinePlayers.takeRandom(15))
 }

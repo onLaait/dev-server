@@ -1,12 +1,11 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.system.Kakc
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.errorMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.infoMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
+import com.github.onlaait.fbw.utils.alertMsg
+import com.github.onlaait.fbw.utils.errorMsg
+import com.github.onlaait.fbw.utils.infoMsg
+import com.github.onlaait.fbw.utils.sendMsg
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.ArgumentLiteral
 import net.minestom.server.command.builder.arguments.ArgumentWord

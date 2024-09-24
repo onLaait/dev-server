@@ -6,8 +6,8 @@ import com.github.onlaait.fbw.server.*
 import com.github.onlaait.fbw.system.*
 import com.github.onlaait.fbw.utils.ComponentUtils
 import com.github.onlaait.fbw.utils.CoroutineManager
-import com.github.onlaait.fbw.utils.PlayerUtils
 import com.github.onlaait.fbw.utils.ServerUtils
+import com.github.onlaait.fbw.utils.allPlayers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
@@ -65,7 +65,7 @@ object Main {
             PlayerData.writeAllPlayers()
 
             val closeMessage = Component.translatable("multiplayer.disconnect.server_shutdown")
-            PlayerUtils.allPlayers.forEach { player ->
+            allPlayers.forEach { player ->
                 player.kick(closeMessage)
             }
 

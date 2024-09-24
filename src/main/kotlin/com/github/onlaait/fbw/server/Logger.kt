@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.server
 
-import com.github.onlaait.fbw.utils.ComponentUtils.plainText
+import com.github.onlaait.fbw.utils.plainText
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer
 import org.apache.logging.log4j.LogManager

@@ -6,7 +6,7 @@ import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.geometry.Ray
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
+import com.github.onlaait.fbw.utils.sendMsg
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor

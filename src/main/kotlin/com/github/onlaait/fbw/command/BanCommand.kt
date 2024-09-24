@@ -1,14 +1,13 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.command.CommandUtils.usage
 import com.github.onlaait.fbw.command.argument.ArgumentText
 import com.github.onlaait.fbw.system.BanSystem
 import com.github.onlaait.fbw.system.BanSystem.ban
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.AudienceUtils.alertMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.sendMsg
-import com.github.onlaait.fbw.utils.AudienceUtils.warnMsg
-import com.github.onlaait.fbw.utils.StringUtils.toUUID
+import com.github.onlaait.fbw.utils.alertMsg
+import com.github.onlaait.fbw.utils.sendMsg
+import com.github.onlaait.fbw.utils.toUUID
+import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.CommandContext
@@ -62,7 +61,7 @@ object BanCommand : Command("ban") {
                     return@thread
                 }
                 val uuid = user["id"].asString.toUUID()
-                if (BanSystem.bannedPlayers.find { it.uuid == uuid } != null) {
+                if (BanSystem.bannedPlayers.any { it.uuid == uuid }) {
                     sender.warnMsg(MSG_FAILED)
                     return@thread
                 }

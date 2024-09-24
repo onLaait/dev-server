@@ -15,14 +15,12 @@ class PlayerObject(var player: Player) : GameObject {
     lateinit var viewers: Set<Player>
 
     override var position: Pos
-        get() {
-            return player.position
-        }
+        get() = player.position
         set(pos) {
             player.teleport(pos)
         }
 
-    override val hitbox: Set<Hitbox>
+    override val hitbox: Array<Hitbox>
         get() {
             val pos = position.toVec3f()
 
@@ -55,7 +53,7 @@ class PlayerObject(var player: Player) : GameObject {
                 0.264f, 0.132f, 0.264f
             )
 
-            return setOf(
+            return arrayOf(
                 Hitbox(body),
                 Hitbox(headBottom),
                 Hitbox(headTop, isHead = true)
