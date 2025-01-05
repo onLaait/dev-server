@@ -18,11 +18,11 @@ object Whitelist {
     val whitelistedPlayers = mutableSetOf<UuidAndName>()
 
     init {
-        read()
-        write()
+        load()
+        store()
     }
 
-    fun read() {
+    fun load() {
         Logger.debug { "Loading whitelist" }
         if (PATH.isRegularFile()) {
             try {
@@ -37,7 +37,7 @@ object Whitelist {
         }
     }
 
-    fun write() = CoroutineManager.fileOutputScope.launch {
+    fun store() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing whitelist" }
         PATH.writer().use {
             it.write(cleanJson(JSON.encodeToString(whitelistedPlayers)))
@@ -61,7 +61,7 @@ object Whitelist {
     fun add(uuid: UUID, name: String): Boolean {
         if (whitelistedPlayers.any { it.uuid == uuid }) return false
         val added = whitelistedPlayers.add(UuidAndName(uuid, name))
-        if (added) write()
+        if (added) store()
         return added
     }
 
@@ -70,7 +70,7 @@ object Whitelist {
     fun remove(uuid: UUID): Boolean {
         val removed = whitelistedPlayers.removeSingle { it.uuid == uuid }
         if (removed) {
-            write()
+            store()
             if (ServerProperties.run { WHITE_LIST && ENFORCE_WHITELIST }) {
                 allPlayers.find { it.uuid == uuid }?.kickIfNotWhitelisted()
             }
@@ -83,7 +83,7 @@ object Whitelist {
             ?: whitelistedPlayers.find { it.name.equals(name, ignoreCase = true) }
             ?: return false
         whitelistedPlayers.remove(find)
-        write()
+        store()
         if (ServerProperties.WHITE_LIST && ServerProperties.ENFORCE_WHITELIST) {
             allPlayers.find { it.uuid == find.uuid }?.kickIfNotWhitelisted()
         }

@@ -19,7 +19,7 @@ object KakcCommand : Command("kakc") {
 
         setDefaultExecutor { sender, context ->
             val cmd = context.commandName
-            val chmods = Kakc.Chmod.entries
+            val chmods = Kakc.ChangeMode.entries
             sender.sendMsg(usage(
                 "$cmd help - 한/영 입력 방법을 봅니다.",
                 "$cmd chkey <문자> - 한/영 전환 문자를 설정합니다.",
@@ -33,7 +33,7 @@ object KakcCommand : Command("kakc") {
         val argChkeyChar = ArgumentText("문자")
 
         val argChmod = ArgumentLiteral("chmod")
-        val argChmodNum = ArgumentWord("모드").from(*Kakc.Chmod.entries.map { it.ordinal.toString() }.toTypedArray())
+        val argChmodNum = ArgumentWord("모드").from(*Kakc.ChangeMode.entries.map { it.ordinal.toString() }.toTypedArray())
 
         addSyntax({ sender, _ ->
             sender.infoMsg(
@@ -51,13 +51,13 @@ object KakcCommand : Command("kakc") {
                 sender.errorMsg(MSG_CHKEY_INVALID)
                 return@addSyntax
             }
-            Kakc.chKey[(sender as Player).uuid] = c
+            Kakc.playersChKey[(sender as Player).uuid] = c
             sender.alertMsg(String.format(MSG_CHKEY_SUCCESS, c))
         }, argChkey, argChkeyChar)
 
         addSyntax({ sender, context ->
-            val mod = Kakc.Chmod.entries[context[argChmodNum].toInt()]
-            Kakc.chMod[(sender as Player).uuid] = mod
+            val mod = Kakc.ChangeMode.entries[context[argChmodNum].toInt()]
+            Kakc.playersChMod[(sender as Player).uuid] = mod
             sender.alertMsg(String.format(MSG_CHMOD_SUCCESS, mod.detail))
         }, argChmod, argChmodNum)
     }

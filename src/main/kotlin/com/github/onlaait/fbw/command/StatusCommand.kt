@@ -11,7 +11,7 @@ import net.minestom.server.command.builder.Command
 object StatusCommand : Command("status") {
     init {
         setDefaultExecutor { sender, _ ->
-            CoroutineManager.subScope.launch {
+            CoroutineManager.SUB_SCOPE.launch {
                 sender.infoMsg(
                     "TPS: ${StringBuilder(String.format("%.1f", ServerStatus.tps))}/${ServerFlag.SERVER_TICKS_PER_SECOND} (${String.format("%.1f", ServerStatus.mspt)}/${MinecraftServer.TICK_MS} MSPT)",
                     "CPU: ${String.format("%.1f", ServerStatus.cpuLoad * 100)} %",

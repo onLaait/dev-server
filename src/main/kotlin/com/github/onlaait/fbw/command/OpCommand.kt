@@ -3,7 +3,6 @@ package com.github.onlaait.fbw.command
 import com.github.onlaait.fbw.system.OpSystem
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.OpSystem.setOp
-import com.github.onlaait.fbw.system.UuidAndName
 import com.github.onlaait.fbw.utils.*
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentEntity
@@ -60,7 +59,7 @@ object OpCommand : Command("op") {
                 val name = user["name"].asString
                 OpSystem.run {
                     opPlayers += UuidAndName(uuid, name)
-                    write()
+                    store()
                 }
                 sender.alertMsg(String.format(MSG_SUCCESS, name))
             }

@@ -51,7 +51,7 @@ object DeopCommand : Command("deop") {
                     sender.warnMsg(MSG_FAILED)
                     return@thread
                 }
-                OpSystem.write()
+                OpSystem.store()
                 sender.alertMsg(String.format(MSG_SUCCESS, user["name"].asString))
             }
         }, argTarget)

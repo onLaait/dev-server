@@ -1,6 +1,7 @@
 package com.github.onlaait.fbw.system
 
-import net.minestom.server.MinecraftServer
+import com.github.onlaait.fbw.server.eventHandler
+import net.minestom.server.event.EventDispatcher
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerChatEvent
 import java.util.*
@@ -8,27 +9,30 @@ import java.util.*
 object Kakc {
 
     init {
-        MinecraftServer.getGlobalEventHandler().addChild(
+        eventHandler.addChild(
             EventNode.all("kakc").setPriority(-100).addListener(PlayerChatEvent::class.java) { e ->
-                val uuid = e.player.uuid
-                val msg = e.message
-                val mod = chMod.getOrPut(uuid) { Chmod.DEFAULT }
-                if ((mod == Chmod.DEFAULT && msg.none { it in 'ㄱ'..'ㅣ' || it in '가'..'힣' } || mod == Chmod.ALWAYS) && msg.any { it in 'A'..'z' }) {
-                    val changeKey = chKey.getOrPut(uuid) { '"' }
-                    e.message = change(msg, changeKey)
+                val player = e.player
+                val uuid = player.uuid
+                val msg = e.rawMessage
+                val mod = playersChMod.getOrPut(uuid) { ChangeMode.DEFAULT }
+                if ((mod == ChangeMode.DEFAULT && msg.none { it in 'ㄱ'..'ㅣ' || it in '가'..'힣' } || mod == ChangeMode.ALWAYS) && msg.any { it in 'A'..'z' }) {
+                    val chKey = playersChKey.getOrPut(uuid) { '"' }
+                    val changed = change(msg, chKey)
+                    e.isCancelled = true
+                    EventDispatcher.call(PlayerChatEvent(player, e.recipients, changed))
                 }
             }
         )
     }
 
-    enum class Chmod(val detail: String) {
+    enum class ChangeMode(val detail: String) {
         DISABLE("비활성화"),
         DEFAULT("한글을 포함하지 않는 경우에만(기본값)"),
         ALWAYS("항상")
     }
 
-    val chMod = HashMap<UUID, Chmod>()
-    val chKey = HashMap<UUID, Char>()
+    val playersChMod = HashMap<UUID, ChangeMode>()
+    val playersChKey = HashMap<UUID, Char>()
 
     private fun change(str: String, akey: Char): String {
         val ret = StringBuilder()

@@ -1,9 +1,10 @@
 package com.github.onlaait.fbw.command.argument
 
+import net.minestom.server.command.ArgumentParserType
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.arguments.Argument
 import net.minestom.server.command.builder.exception.ArgumentSyntaxException
-import net.minestom.server.utils.binary.BinaryWriter
+import net.minestom.server.network.NetworkBuffer
 
 class ArgumentUsername(id: String) : Argument<String>(id) {
 
@@ -26,18 +27,14 @@ class ArgumentUsername(id: String) : Argument<String>(id) {
         return input
     }
 
-    override fun parser(): String = "minecraft:entity"
+    override fun parser() = ArgumentParserType.ENTITY
 
-    override fun nodeProperties(): ByteArray {
-        return BinaryWriter.makeArray { packetWriter: BinaryWriter ->
-            packetWriter.writeByte(0x03)
-        }
-    }
+    override fun nodeProperties() = NetworkBuffer.makeArray(NetworkBuffer.BYTE, 0x03)
 
     fun strict(strict: Boolean): ArgumentUsername {
         this.strict = strict
         return this
     }
 
-    override fun toString(): String = String.format("Username<%s>", id)
+    override fun toString() = "Username<$id>"
 }

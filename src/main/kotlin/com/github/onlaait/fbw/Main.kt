@@ -33,7 +33,7 @@ object Main {
         val startTime = System.currentTimeMillis()
         Logger.info("Starting Minecraft server version ${MinecraftServer.VERSION_NAME}")
 
-        System.setProperty("minestom.tps", "100")
+        System.setProperty("minestom.tps", "40")
         System.setProperty("joml.fastmath", "true")
         System.setProperty("joml.sinLookup", "true")
 
@@ -62,16 +62,17 @@ object Main {
             Logger.info("Stopping server")
 
             Terminal.stop()
-            PlayerData.writeAllPlayers()
 
             val closeMessage = Component.translatable("multiplayer.disconnect.server_shutdown")
-            allPlayers.forEach { player ->
-                player.kick(closeMessage)
+            allPlayers.forEach {
+                PlayerData.store(it)
+                it.kick(closeMessage)
             }
 
             runBlocking { CoroutineManager.mustJobs.joinAll() }
 
-            Thread.sleep(100)
+//            Thread.sleep(100)
+            Logger.info("0")
         }
 
         if (ServerProperties.ONLINE_MODE) MojangAuth.init()
@@ -86,7 +87,7 @@ object Main {
             }
         )
 
-        MinecraftServer.getConnectionManager().setPlayerProvider(::PlayerP)
+        MinecraftServer.getConnectionManager().setPlayerProvider(::FPlayer)
 
         ServerUtils
         ComponentUtils
@@ -100,6 +101,7 @@ object Main {
         if (ServerProperties.ENABLE_KAKC) Kakc
 
         Event
+        Schedule
         CommandRegister
 
         Instance
@@ -120,5 +122,9 @@ object Main {
 
         val bootTime = (System.currentTimeMillis() - startTime) / 1000.0
         Logger.info("Done (${DecimalFormat("#.##").format(bootTime)}s)! For help, type \"help\"")
+/*        thread(isDaemon = true) {
+            Thread.sleep(3000)
+            MinecraftServer.stopCleanly()
+        }*/
     }
 }

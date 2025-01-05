@@ -12,6 +12,7 @@ object StopCommand : Command("stop") {
         setDefaultExecutor { sender, _ ->
             sender.alertMsg("서버를 종료합니다.")
             MinecraftServer.stopCleanly()
+//            exitProcess(0)
         }
     }
 }

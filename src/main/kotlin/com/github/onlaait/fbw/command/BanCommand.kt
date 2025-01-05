@@ -68,7 +68,7 @@ object BanCommand : Command("ban") {
                 val name = user["name"].asString
                 BanSystem.run {
                     bannedPlayers.add(BanSystem.BannedPlayer(uuid, name, reason))
-                    writePlayers()
+                    storePlayers()
                 }
                 if (reason == null) {
                     sender.alertMsg(String.format(MSG_SUCCESS, name))

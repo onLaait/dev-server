@@ -22,13 +22,13 @@ data class PlayerData(
 ) {
     companion object {
 
-        private const val PATH = "playerdata"
+        private val PATH = Path("playerdata")
 
         init {
-            Path(PATH).createDirectories()
+            PATH.createDirectories()
         }
 
-        fun read(player: Player): PlayerData {
+        fun load(player: Player): PlayerData {
             Logger.debug { "Loading player data of ${player.username}" }
             val path = getPath(player)
             return if (path.isRegularFile()) {
@@ -38,13 +38,13 @@ data class PlayerData(
             }
         }
 
-        fun write(player: Player) = CoroutineManager.fileOutputScope.launch {
+        fun store(player: Player) = CoroutineManager.FILE_OUT_SCOPE.launch {
             Logger.debug { "Storing player data of ${player.username}" }
             getPath(player).writer().use { it.write(Yaml.default.encodeToString(player.data)) }
         }.mustBeCompleted()
 
-        fun writeAllPlayers() = allPlayers.forEach { write(it) }
+        fun storeAllPlayers() = allPlayers.forEach { store(it) }
 
-        private fun getPath(player: Player): Path = Path("$PATH/${player.uuid}.yml")
+        private fun getPath(player: Player): Path = PATH.resolve("${player.uuid}.yml")
     }
 }

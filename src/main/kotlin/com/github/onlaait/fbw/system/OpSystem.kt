@@ -5,6 +5,7 @@ import com.github.onlaait.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.onlaait.fbw.utils.CoroutineManager
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
 import com.github.onlaait.fbw.utils.JSON
+import com.github.onlaait.fbw.utils.UuidAndName
 import com.github.onlaait.fbw.utils.cleanJson
 import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
@@ -20,11 +21,11 @@ object OpSystem {
     val opPlayers = mutableSetOf<UuidAndName>()
 
     init {
-        read()
-        write()
+        load()
+        store()
     }
 
-    fun read() {
+    fun load() {
         Logger.debug { "Loading ops" }
         if (PATH.isRegularFile()) {
             try {
@@ -37,7 +38,7 @@ object OpSystem {
         }
     }
 
-    fun write() = CoroutineManager.fileOutputScope.launch {
+    fun store() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing ops" }
         PATH.writer().use { it.write(cleanJson(JSON.encodeToString(opPlayers))) }
     }.mustBeCompleted()
@@ -57,7 +58,7 @@ object OpSystem {
             }
         }
         refreshCommands()
-        write()
+        store()
         return true
     }
 

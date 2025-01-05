@@ -2,6 +2,7 @@ package com.github.onlaait.fbw.command.argument
 
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
+import net.minestom.server.command.ArgumentParserType
 import net.minestom.server.command.builder.arguments.minecraft.SuggestionType
 import net.minestom.server.command.builder.arguments.minecraft.registry.ArgumentRegistry
 
@@ -14,9 +15,9 @@ class ArgumentSound(id: String) : ArgumentRegistry<Sound.Type>(id) {
         suggestionType = SuggestionType.AVAILABLE_SOUNDS
     }
 
-    override fun parser(): String = "minecraft:resource_location"
+    override fun parser() = ArgumentParserType.RESOURCE_LOCATION
 
-    override fun getRegistry(value: String): Sound.Type = Sound.Type { Key.key(value) }
+    override fun getRegistry(value: String) = Sound.Type { Key.key(value) }
 
-    override fun toString(): String = String.format("Sound<%s>", id)
+    override fun toString() = "Sound<$id>"
 }

@@ -14,20 +14,16 @@ object Terminal : SimpleTerminalConsole() {
     private var running = false
 
     override fun start() {
-        thread(name = "Terminal") {
+        thread(name = "Terminal", isDaemon = true) {
             Logger.debug { "Starting terminal" }
             running = true
             super.start()
         }
     }
 
-    fun stop() {
-        running = false
-    }
-
-    override fun buildReader(builder: LineReaderBuilder): LineReader {
-        return super.buildReader(builder
-            .completer { _, line, candidates ->
+    override fun buildReader(builder: LineReaderBuilder): LineReader =
+        super.buildReader(
+            builder.completer { _, line, candidates ->
                 val commandManager = MinecraftServer.getCommandManager()
                 if (line.wordIndex() == 0) {
                     val commandString = line.word().lowercase()
@@ -48,14 +44,18 @@ object Terminal : SimpleTerminalConsole() {
                         candidates.add(Candidate(it.entry))
                     }
                 }
-            })
-    }
+            }
+        )
 
     override fun isRunning(): Boolean = running
 
     override fun runCommand(command: String) {
         val commandManager = MinecraftServer.getCommandManager()
         commandManager.execute(commandManager.consoleSender, command)
+    }
+
+    fun stop() {
+        running = false
     }
 
     override fun shutdown() {

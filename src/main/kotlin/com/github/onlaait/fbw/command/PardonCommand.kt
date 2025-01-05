@@ -43,7 +43,7 @@ object PardonCommand : Command("pardon", "unban") {
                         val currentName = MojangUtils.fromUuid(find.uuid.toString())?.get("name")?.asString
                         BanSystem.run {
                             bannedPlayers.remove(find)
-                            writePlayers()
+                            storePlayers()
                         }
                         sender.alertMsg(String.format(MSG_SUCCESS, currentName))
                         return@thread

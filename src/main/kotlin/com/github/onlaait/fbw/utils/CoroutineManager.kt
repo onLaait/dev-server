@@ -7,9 +7,9 @@ object CoroutineManager {
 
     val mustJobs = mutableListOf<Job>()
 
-    val chatScope = CoroutineScope(newSingleThreadContext("ChatThread"))
-    val fileOutputScope = CoroutineScope(newSingleThreadContext("FileOutputThread"))
-    val subScope = CoroutineScope(newSingleThreadContext("SubThread"))
+    val CHAT_SCOPE = CoroutineScope(newSingleThreadContext("ChatDispatcher"))
+    val FILE_OUT_SCOPE = CoroutineScope(newSingleThreadContext("FileOutDispatcher"))
+    val SUB_SCOPE = CoroutineScope(newSingleThreadContext("SubDispatcher"))
 
     fun Job.mustBeCompleted(): Job {
         mustJobs += this

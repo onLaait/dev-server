@@ -23,6 +23,15 @@ typealias Mat3d = Matrix3d
 typealias Mat4f = Matrix4f
 typealias Mat4d = Matrix4d
 
+operator fun Vec2f.plus(other: Vec2f): Vec2f = this.add(other, Vec2f())
+operator fun Vec2f.minus(other: Vec2f): Vec2f = this.sub(other, Vec2f())
+operator fun Vec2f.times(other: Vec2f): Vec2f = this.mul(other, Vec2f())
+
+operator fun Vec2d.plus(other: Vec2d): Vec2d = this.add(other, Vec2d())
+operator fun Vec2d.minus(other: Vec2d): Vec2d = this.sub(other, Vec2d())
+operator fun Vec2d.times(other: Vec2d): Vec2d = this.mul(other, Vec2d())
+operator fun Vec2d.times(other: Double): Vec2d = this.mul(other, Vec2d())
+
 operator fun Vec3f.plus(other: Vec3f): Vec3f = this.add(other, Vec3f())
 operator fun Vec3f.minus(other: Vec3f): Vec3f = this.sub(other, Vec3f())
 operator fun Vec3f.times(other: Vec3f): Vec3f = this.mul(other, Vec3f())

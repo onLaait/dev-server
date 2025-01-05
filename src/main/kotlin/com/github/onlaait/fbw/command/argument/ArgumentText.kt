@@ -1,20 +1,17 @@
 package com.github.onlaait.fbw.command.argument
 
+import net.minestom.server.command.ArgumentParserType
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.arguments.Argument
-import net.minestom.server.utils.binary.BinaryWriter
+import net.minestom.server.network.NetworkBuffer
 
 class ArgumentText(id: String) : Argument<String>(id, true, true) {
 
-    override fun parse(sender: CommandSender, input: String): String = input
+    override fun parse(sender: CommandSender, input: String) = input
 
-    override fun parser(): String = "brigadier:string"
+    override fun parser() = ArgumentParserType.STRING
 
-    override fun nodeProperties(): ByteArray {
-        return BinaryWriter.makeArray { packetWriter ->
-            packetWriter.writeVarInt(2) // Greedy phrase
-        }
-    }
+    override fun nodeProperties() = NetworkBuffer.makeArray(NetworkBuffer.VAR_INT, 2) // Greedy phrase
 
-    override fun toString(): String = String.format("Text<%s>", id)
+    override fun toString() = "Text<$id>"
 }

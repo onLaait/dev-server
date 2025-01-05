@@ -14,18 +14,17 @@ import kotlin.math.min
 
 object ServerStatus {
 
-    private var tabListContent = Pair("", "")
+    private lateinit var tabListFormat: Pair<String, String>
 
-    private val runtime = Runtime.getRuntime()
     private val os = ManagementFactory.getOperatingSystemMXBean() as OperatingSystemMXBean
 
     val cpuLoad: Double
         get() = os.processCpuLoad
 
     val totalMem: Long
-        get() = runtime.totalMemory() / 1024 / 1024
+        get() = Runtime.getRuntime().totalMemory() / 1024 / 1024
     val freeMem: Long
-        get() = runtime.freeMemory() / 1024 / 1024
+        get() = Runtime.getRuntime().freeMemory() / 1024 / 1024
     val usedMem: Long
         get() = totalMem - freeMem
 
@@ -47,10 +46,9 @@ object ServerStatus {
 
             while (true) {
                 val tps = tps
-                val tpsStr = StringBuilder(String.format("%.1f", tps))
-                if (tps == maxTps) tpsStr.append('*')
+                val tpsStr = String.format("%.1f", tps)
 
-                tabListContent = Pair(
+                tabListFormat = Pair(
                     (
                         "                                   \n" +
                         "테스트 서버\n" +
@@ -71,9 +69,9 @@ object ServerStatus {
     }
 
     fun Audience.sendTabList() {
-        val content = tabListContent
-        val header = content.first
-        val footer = content.second
+        val format = tabListFormat
+        val header = format.first
+        val footer = format.second
 
         val onlinePlayersCount = allPlayersCount
         val maxPlayers = ServerProperties.MAX_PLAYERS

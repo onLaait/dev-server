@@ -1,10 +1,10 @@
 plugins {
-    val kotlinVersion = "1.9.23"
+    val kotlinVersion = "1.9.25"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
     id("java")
-    id("com.gradleup.shadow") version "8.3.0"
+    id("com.gradleup.shadow") version "8.3.3"
 }
 
 group = "com.github.onlaait.fbw"
@@ -20,7 +20,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
-    implementation("net.minestom:minestom-snapshots:4305006e6b")
+    implementation("net.minestom:minestom-snapshots:d8c5831f4e")
 
     val log4jVersion = "2.23.1"
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")

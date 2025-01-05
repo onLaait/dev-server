@@ -21,7 +21,7 @@ object ComponentUtils {
         val localeStr = locale.toString().lowercase()
         Logger.debug { "Loading language $localeStr" }
         val map: Map<String, @Serializable(with = MessageFormatAsStringSerializer::class) MessageFormat> =
-            Json.decodeFromString(ClassLoader.getSystemResource("lang/$localeStr.json").readText())
+            Json.decodeFromString(ClassLoader.getSystemResource("minecraft/lang/$localeStr.json").readText())
         val registry = TranslationRegistry.create(Key.key("fbw"))
         registry.registerAll(locale, map)
         GlobalTranslator.translator().addSource(registry)

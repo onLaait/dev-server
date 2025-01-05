@@ -12,13 +12,13 @@ object Instance {
     init {
         Logger.info("Preparing instances")
 
-        val dimension = DimensionType.builder()
+        val dimensionType = DimensionType.builder()
             .ambientLight(1f)
             .build()
-        val dimensionType = MinecraftServer.getDimensionTypeRegistry()
-            .register("fbw:default", dimension)
+        val dimensionTypeId = MinecraftServer.getDimensionTypeRegistry()
+            .register("fbw:default", dimensionType)
 
-        instance = MinecraftServer.getInstanceManager().createInstanceContainer(dimensionType).apply {
+        instance = MinecraftServer.getInstanceManager().createInstanceContainer(dimensionTypeId).apply {
             setGenerator { unit -> unit.modifier().fillHeight(0, 1, Block.GRASS_BLOCK) }
             enableAutoChunkLoad(false)
             for (x in -50..50) {

@@ -145,7 +145,7 @@ object WhitelistCommand : Command("whitelist") {
                 }
                 val currentName = MojangUtils.fromUuid(find.uuid.toString())?.get("name")?.asString
                 Whitelist.whitelistedPlayers.remove(find)
-                Whitelist.write()
+                Whitelist.store()
                 if (ServerProperties.WHITE_LIST && ServerProperties.ENFORCE_WHITELIST) {
                     allPlayers.find { it.uuid == find.uuid }?.kickIfNotWhitelisted()
                 }
@@ -164,8 +164,8 @@ object WhitelistCommand : Command("whitelist") {
         }, argList)
 
         addSyntax({ sender, _ ->
-            Whitelist.read()
-            Whitelist.write()
+            Whitelist.load()
+            Whitelist.store()
             sender.alertMsg(MSG_RELOADED)
             if (ServerProperties.WHITE_LIST && ServerProperties.ENFORCE_WHITELIST) {
                 allPlayers.forEach { it.kickIfNotWhitelisted() }

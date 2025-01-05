@@ -58,7 +58,7 @@ object ServerProperties {
         write()
     }
 
-    fun write() = CoroutineManager.fileOutputScope.launch {
+    fun write() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing properties" }
         properties.store(PATH.writer(), "FantasyBattleWorld server properties")
     }.mustBeCompleted()

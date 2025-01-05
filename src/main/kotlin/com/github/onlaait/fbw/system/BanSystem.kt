@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.serializer.UUIDAsStringSerializer
+import com.github.onlaait.fbw.serializer.UuidAsStringSerializer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.utils.*
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
@@ -20,12 +20,12 @@ object BanSystem {
     val bannedIps = mutableSetOf<BannedIp>()
 
     init {
-        read()
-        writePlayers()
-        writeIps()
+        load()
+        storePlayers()
+        storeIps()
     }
 
-    fun read() {
+    fun load() {
         run {
             Logger.debug { "Loading banned players" }
             val path = Path(playersFilePath)
@@ -54,19 +54,19 @@ object BanSystem {
         }
     }
 
-    fun writePlayers() = CoroutineManager.fileOutputScope.launch {
+    fun storePlayers() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing banned players" }
         Path(playersFilePath).writer().use { it.write(cleanJson(JSON.encodeToString(bannedPlayers))) }
     }.mustBeCompleted()
 
-    fun writeIps() = CoroutineManager.fileOutputScope.launch {
+    fun storeIps() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing banned ips" }
         Path(ipsFilePath).writer().use { it.write(cleanJson(JSON.encodeToString(bannedIps))) }
     }.mustBeCompleted()
 
     @Serializable
     data class BannedPlayer(
-        @Serializable(with = UUIDAsStringSerializer::class)
+        @Serializable(with = UuidAsStringSerializer::class)
         val uuid: UUID,
         val name: String,
         val reason: String?
@@ -81,7 +81,7 @@ object BanSystem {
     fun Player.ban(reason: String? = null) {
         kick(getBanMessage(reason))
         bannedPlayers.add(BannedPlayer(uuid, username, reason))
-        writePlayers()
+        storePlayers()
     }
 
     fun banIp(ip: String, reason: String? = null): List<Player>? {
@@ -91,7 +91,7 @@ object BanSystem {
         targets.forEach { player ->
             player.kick(getBanMessage(reason))
         }
-        writeIps()
+        storeIps()
         return targets
     }
 
@@ -101,19 +101,19 @@ object BanSystem {
         } else {
             bannedPlayers.removeSingle { it.name.equals(username, ignoreCase = true) }
         }
-        if (removed) writePlayers()
+        if (removed) storePlayers()
         return removed
     }
 
     fun pardon(uuid: UUID): Boolean {
         val removed = bannedPlayers.removeSingle { it.uuid == uuid }
-        if (removed) writePlayers()
+        if (removed) storePlayers()
         return removed
     }
 
     fun pardonIp(ip: String): Boolean {
         val removed = bannedIps.removeSingle { it.ip == ip }
-        if (removed) writeIps()
+        if (removed) storeIps()
         return removed
     }
 

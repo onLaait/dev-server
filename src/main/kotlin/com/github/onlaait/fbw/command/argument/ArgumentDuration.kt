@@ -1,9 +1,10 @@
 package com.github.onlaait.fbw.command.argument
 
+import net.minestom.server.command.ArgumentParserType
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.arguments.Argument
 import net.minestom.server.command.builder.suggestion.SuggestionEntry
-import net.minestom.server.utils.binary.BinaryWriter
+import net.minestom.server.network.NetworkBuffer
 
 class ArgumentDuration(id: String) : Argument<String>(id) {
 
@@ -13,7 +14,7 @@ class ArgumentDuration(id: String) : Argument<String>(id) {
     }
 
     init {
-        this.setSuggestionCallback { _, context, suggestion ->
+        setSuggestionCallback { _, context, suggestion ->
             val input = context.map["기간"] as? String ?: return@setSuggestionCallback
             if (input.length > 9) return@setSuggestionCallback
             var num = false
@@ -57,15 +58,11 @@ class ArgumentDuration(id: String) : Argument<String>(id) {
         }
     }
 
-    override fun parse(sender: CommandSender, input: String): String = input
+    override fun parse(sender: CommandSender, input: String) = input
 
-    override fun parser(): String = "brigadier:string"
+    override fun parser() = ArgumentParserType.STRING
 
-    override fun nodeProperties(): ByteArray {
-        return BinaryWriter.makeArray { packetWriter ->
-            packetWriter.writeVarInt(0) // Single word
-        }
-    }
+    override fun nodeProperties() = NetworkBuffer.makeArray(NetworkBuffer.VAR_INT, 0) // Single word
 
-    override fun toString(): String = String.format("Duration<%s>", id)
+    override fun toString() = "Duration<$id>"
 }

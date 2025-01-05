@@ -3,7 +3,6 @@ package com.github.onlaait.fbw.utils
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.system.ServerProperties
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-import net.minestom.server.MinecraftServer
 import net.minestom.server.ping.ResponseData
 import java.awt.Image
 import java.awt.image.BufferedImage
@@ -18,9 +17,10 @@ object ServerUtils {
         ResponseData().apply {
             description = LegacyComponentSerializer.legacySection().deserialize(ServerProperties.MOTD)
             maxPlayer = ServerProperties.MAX_PLAYERS
-            Logger.debug { "Loading server icon" }
-            val serverIconPath = "server-icon.png"
-            File(serverIconPath).let { file ->
+            favicon = run {
+                Logger.debug { "Loading server icon" }
+                val serverIconPath = "server-icon.png"
+                val file = File(serverIconPath)
                 val inputStream =
                     if (file.isFile) {
                         file.inputStream()
@@ -38,13 +38,16 @@ object ServerUtils {
                         ImageIO.write(bufferedImg, "png", outputStream)
                         Base64.getEncoder().encodeToString(outputStream.toByteArray())
                     }
-                favicon = "data:image/png;base64,$base64Str"
+                "data:image/png;base64,$base64Str"
             }
         }
-}
 
-fun ResponseData.refreshEntries() {
-    if (ServerProperties.HIDE_ONLINE_PLAYERS) return
-    clearEntries()
-    addEntries(MinecraftServer.getConnectionManager().onlinePlayers.takeRandom(15))
+    fun refreshResponse() {
+        responseData.run {
+            online = allPlayersCount
+            if (ServerProperties.HIDE_ONLINE_PLAYERS) return
+            clearEntries()
+            addEntries(allPlayers.takeRandom(15))
+        }
+    }
 }
