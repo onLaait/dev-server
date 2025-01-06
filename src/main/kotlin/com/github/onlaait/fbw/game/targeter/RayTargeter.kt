@@ -6,12 +6,13 @@ import com.github.onlaait.fbw.game.utils.Hitbox
 import com.github.onlaait.fbw.geometry.Ray
 import com.github.onlaait.fbw.math.toVec
 import com.github.onlaait.fbw.server.Instance
+import com.github.onlaait.fbw.server.Logger
 
 object RayTargeter {
 
     fun target(ray: Ray, objects: Iterable<Hittable>, stopOnHitGround: Boolean = true): HitResult {
         var ray = ray
-        println("origin: ${ray.origin} direction: ${ray.direction} objs: ${objects.count()}")
+        Logger.debug { "origin: ${ray.origin} direction: ${ray.direction} objs: ${objects.count()}" }
 
         val hits = mutableListOf<Hit>()
 

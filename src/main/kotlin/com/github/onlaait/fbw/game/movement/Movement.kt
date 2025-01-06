@@ -1,10 +1,10 @@
 package com.github.onlaait.fbw.game.movement
 
-import net.minestom.server.entity.Player
+import com.github.onlaait.fbw.server.FPlayer
 
 abstract class Movement {
 
-    internal lateinit var player: Player
+    internal lateinit var player: FPlayer
 
     open fun start() {}
     open fun end() {}

@@ -27,7 +27,7 @@ class Doll(var player: FPlayer) : Agent() {
 
     var syncPosition = true
 
-    override var hitbox = Hitbox {
+    override val hitbox = Hitbox {
         val pos = position.toVec3f()
 
         val bodyH = 1.40625f
@@ -56,5 +56,5 @@ class Doll(var player: FPlayer) : Agent() {
         )
     }
 
-    override fun getPov() = position.withY { it + player.eyeHeight }
+    override fun getPov() = player.getPov()
 }

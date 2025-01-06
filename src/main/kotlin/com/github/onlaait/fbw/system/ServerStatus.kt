@@ -36,9 +36,12 @@ object ServerStatus {
     val tps: Double
         get() = min(maxTps, 1000 / mspt)
     fun onTick(tickTime: Double) {
+        tick++
         if (lastTicks.remainingCapacity() == 0) lastTicks.poll()
         lastTicks.offer(tickTime)
     }
+
+    var tick: Long = 0
 
     init {
         thread(name = "ServerStatusThread", isDaemon = true) {

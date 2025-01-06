@@ -158,13 +158,13 @@ object Event {
         }
 
         event.addListener(PlayerLClickEvent::class.java) { e ->
-            println("${Schedule.tick} L event")
+//            println("${ServerStatus.tick} L event")
             val p = e.player as FPlayer
             ExampleSkill.cast(p.doll!!)
         }
 
         event.addListener(PlayerRClickEvent::class.java) { e ->
-            println("${Schedule.tick} R event")
+//            println("${ServerStatus.tick} R event")
             val p = e.player as FPlayer
             ExampleSkill.cast(p.doll!!)
         }
@@ -275,16 +275,16 @@ object Event {
             val p = player as FPlayer
             when (packet.status) {
                 STARTED_DIGGING -> {
-                    println("${Schedule.tick} packet L start")
+//                    Logger.debug { "${ServerStatus.tick} packet L start" }
                     p.mouseInputs.left = true
                     event.call(PlayerLClickEvent(player))
                 }
                 CANCELLED_DIGGING, FINISHED_DIGGING -> {
-                    println("${Schedule.tick} packet L end")
+//                    Logger.debug { "${ServerStatus.tick} packet L end" }
                     p.mouseInputs.left = false
                 }
                 UPDATE_ITEM_STATE -> {
-                    println("${Schedule.tick} packet R end")
+//                    Logger.debug { "${ServerStatus.tick} packet R end" }
                     p.mouseInputs.right = false
                 }
                 else -> {}
@@ -293,13 +293,13 @@ object Event {
 
         packet.setPlayListener(ClientInteractEntityPacket::class.java) { packet, player ->
             if (packet.type is ClientInteractEntityPacket.Attack) {
-                println("${Schedule.tick} packet L end")
+//                Logger.debug { "${ServerStatus.tick} packet L end" }
                 event.call(PlayerLClickEvent(player))
             }
         }
 
         packet.setPlayListener(ClientUseItemPacket::class.java) { _, player ->
-            println("${Schedule.tick} packet R start")
+//            Logger.debug { "${ServerStatus.tick} packet R start" }
             val p = player as FPlayer
             p.mouseInputs.right = true
             event.call(PlayerRClickEvent(player))

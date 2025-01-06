@@ -4,6 +4,7 @@ import com.github.onlaait.fbw.game.movement.DefaultMovement
 import com.github.onlaait.fbw.game.movement.PlayerMovements
 import com.github.onlaait.fbw.game.obj.Doll
 import com.github.onlaait.fbw.system.PlayerData
+import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
 import net.minestom.server.network.player.GameProfile
@@ -25,6 +26,8 @@ class FPlayer(playerConnection: PlayerConnection, gameProfile: GameProfile) : Pl
         getAttribute(Attribute.MOVEMENT_SPEED).baseValue = value.toDouble()
         fieldViewModifier = value
     }
+
+    fun getPov(): Pos = position.withY { it + eyeHeight }
 
     fun spectate(doll: Doll) {
     }

@@ -2,6 +2,7 @@ package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.entity.DUIBlock
 import com.github.onlaait.fbw.game.movement.CannotStep
+import com.github.onlaait.fbw.game.movement.CannotStepOrRotate
 import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.math.Vec2d
 import com.github.onlaait.fbw.server.FPlayer
@@ -9,6 +10,7 @@ import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.editMeta
+import com.github.onlaait.fbw.utils.seconds
 import com.github.onlaait.fbw.utils.sendMsg
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -97,6 +99,7 @@ object TestCommand : Command("test") {
                     val i = ItemStack.of(Material.SHIELD).builder()
                         .customName(Component.empty())
                         .set(ItemComponent.HIDE_TOOLTIP)
+                        .set(ItemComponent.ITEM_MODEL, "air")
                         .build()
                     p.inventory.setItemStack(6, i)
                 }
@@ -137,10 +140,17 @@ object TestCommand : Command("test") {
                     p.movement.apply(m)
                     scheduleManager.buildTask {
                         p.movement.remove(m)
-                    }.delay(TaskSchedule.seconds(5))
+                    }.delay(5.0.seconds)
                         .schedule()
                 }
-
+                "stun" -> {
+                    val m = CannotStepOrRotate()
+                    p.movement.apply(m)
+                    scheduleManager.buildTask {
+                        p.movement.remove(m)
+                    }.delay(2.0.seconds)
+                        .schedule()
+                }
             }
         }, argWord)
 
@@ -181,7 +191,7 @@ object TestCommand : Command("test") {
                     MinecraftServer.getSchedulerManager().buildTask {
                         v = v.mul(0.999).withY { it - 0.12 }
                         pos = pos.add(v)
-                        println(entity.position.distance(pos))
+//                        Logger.debug { entity.position.distance(pos) }
                         entity.teleport(pos)
                         showOneDust(252, 140, 255, pos)
                     }

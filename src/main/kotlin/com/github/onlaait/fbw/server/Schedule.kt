@@ -14,16 +14,15 @@ object Schedule {
         val schedule = scheduleManager
 
         schedule.buildTask {
-            tick++
             allPlayers.forEach {
                 val p = it as FPlayer
                 p.mouseInputs.run {
                     if (left) {
-                        println("$tick L schedule")
+//                        println("${ServerStatus.tick} L schedule")
                         eventHandler.call(PlayerLClickEvent(p))
                     }
                     if (right) {
-                        println("$tick R schedule")
+//                        println("${ServerStatus.tick} R schedule")
                         eventHandler.call(PlayerRClickEvent(p))
                     }
                 }
@@ -40,6 +39,4 @@ object Schedule {
             .repeat(TaskSchedule.nextTick())
             .schedule()
     }
-
-    var tick: Long = 0
 }

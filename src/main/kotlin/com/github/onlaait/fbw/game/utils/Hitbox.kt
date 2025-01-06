@@ -9,7 +9,7 @@ class Hitbox(private val maker: () -> Array<Element>) {
     fun get(): Array<Element> {
         if (elements == null) {
             elements = maker()
-            println("hitbox")
+//            Logger.debug { "hitbox" }
         }
         return elements!!
     }

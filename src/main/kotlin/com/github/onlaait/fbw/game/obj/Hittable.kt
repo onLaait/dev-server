@@ -9,6 +9,6 @@ interface Hittable : GameObj {
 
     val isHittableByTeammate: Boolean
 
-    var hitbox: Hitbox
+    val hitbox: Hitbox
 
 }
