@@ -8,7 +8,7 @@ object DefaultExceptionHandler : Thread.UncaughtExceptionHandler {
         Logger.error("Encountered an unexpected exception\n${e?.stackTraceToString()}")
         try {
             MinecraftServer.stopCleanly()
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
             exitProcess(1)
         }
     }

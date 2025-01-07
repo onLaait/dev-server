@@ -8,7 +8,7 @@ import com.github.onlaait.fbw.game.targeter.RayTargeter
 import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.geometry.Ray
 import com.github.onlaait.fbw.math.toVec3f
-import com.github.onlaait.fbw.server.eventHandler
+import com.github.onlaait.fbw.server.Event
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.minestom.server.adventure.audience.Audiences
@@ -38,7 +38,7 @@ object ExampleSkill : Skill {
         if (targets.isNotEmpty()) {
             val target = targets.first()
             dist = target.distance
-            eventHandler.call(ObjDamageEvent(target.obj, o, 0.0, target.critical))
+            Event.handler.call(ObjDamageEvent(target.obj, o, 0.0, target.critical))
         } else {
             val distGrnd = hit.distanceToGround
             if (distGrnd == null) {
@@ -52,9 +52,11 @@ object ExampleSkill : Skill {
             }
         }
 
-        repeat(dist.toInt()) {
-            pos = pos.add(dir)
-            showOneDust(252, 140, 255, pos)
+        val gap = 1f
+        var i = 1f
+        while (i <= dist) {
+            showOneDust(252, 140, 255, pos.add(dir.mul(i.toDouble())))
+            i += gap
         }
     }
 }

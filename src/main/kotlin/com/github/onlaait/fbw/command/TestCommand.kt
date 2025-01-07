@@ -7,11 +7,13 @@ import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.math.Vec2d
 import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.server.Instance
+import com.github.onlaait.fbw.server.Logger
+import com.github.onlaait.fbw.server.Schedule.seconds
 import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.editMeta
-import com.github.onlaait.fbw.utils.seconds
 import com.github.onlaait.fbw.utils.sendMsg
+import com.github.onlaait.fbw.utils.shakeScreen
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
@@ -148,9 +150,23 @@ object TestCommand : Command("test") {
                     p.movement.apply(m)
                     scheduleManager.buildTask {
                         p.movement.remove(m)
-                    }.delay(2.0.seconds)
+                    }.delay(1.5.seconds)
                         .schedule()
                 }
+                "y" -> {
+                    val ys = mutableListOf<Int>()
+                    scheduleManager.submitTask {
+                        val y = p.position.y.toInt()
+                        ys += y
+                        if (y == 1) {
+                            Logger.debug { ys.joinToString("\t") }
+                            ys.clear()
+                            return@submitTask TaskSchedule.stop()
+                        }
+                        return@submitTask TaskSchedule.nextTick()
+                    }
+                }
+
             }
         }, argWord)
 
@@ -178,10 +194,11 @@ object TestCommand : Command("test") {
 
         addSyntax({ sender, context ->
             val p = sender as FPlayer
+            val arg1 = context[argDouble1]
             when (context[argWord]) {
                 "projectile" -> {
                     var pos = p.position.add(0.0, 1.62, 0.0)
-                    var v = p.position.direction().mul(context[argDouble1])
+                    var v = p.position.direction().mul(arg1)
                     val entity = Entity(EntityType.ITEM_DISPLAY)
                     (entity.entityMeta as ItemDisplayMeta).run {
                         itemStack = ItemStack.of(Material.STONE)
@@ -199,7 +216,10 @@ object TestCommand : Command("test") {
                         .schedule()
                 }
                 "speed" -> {
-                    p.changeMovementSpeed(context[argDouble1].toFloat())
+                    p.setMovementSpeed(arg1.toFloat())
+                }
+                "shake" -> {
+                    p.shakeScreen(arg1.toFloat())
                 }
             }
         }, argWord, argDouble1)

@@ -1,9 +1,9 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.server.Server
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.ServerProperties
-import com.github.onlaait.fbw.system.ServerStatus.sendTabList
-import com.github.onlaait.fbw.utils.ServerUtils
+import com.github.onlaait.fbw.system.ServerStatusMonitor.sendTabList
 import com.github.onlaait.fbw.utils.alertMsg
 import com.github.onlaait.fbw.utils.sendMsg
 import com.github.onlaait.fbw.utils.warnMsg
@@ -32,7 +32,7 @@ object MaxplayersCommand : Command("maxplayers") {
                 return@addSyntax
             }
             ServerProperties.MAX_PLAYERS = value
-            ServerUtils.responseData.maxPlayer = value
+            Server.pingResponse.maxPlayer = value
             Audiences.players().sendTabList()
             sender.alertMsg(String.format(MSG_SUCCESS, value))
         }, argInt)

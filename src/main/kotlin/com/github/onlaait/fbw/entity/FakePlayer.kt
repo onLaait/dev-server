@@ -1,6 +1,9 @@
 package com.github.onlaait.fbw.entity
 
-import net.minestom.server.entity.*
+import net.minestom.server.entity.EntityType
+import net.minestom.server.entity.GameMode
+import net.minestom.server.entity.Metadata
+import net.minestom.server.entity.Player
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket
 import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket
@@ -9,7 +12,7 @@ class FakePlayer(
     private val username: String,
     private val skinTexture: String?,
     private val skinSignature: String?
-) : Entity(EntityType.PLAYER) {
+) : FEntity(EntityType.PLAYER) {
 
     init {
         setNoGravity(true)

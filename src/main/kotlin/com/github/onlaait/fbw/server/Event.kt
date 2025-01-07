@@ -11,8 +11,7 @@ import com.github.onlaait.fbw.system.BanSystem.kickIfBanned
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.system.PlayerData
 import com.github.onlaait.fbw.system.ServerProperties
-import com.github.onlaait.fbw.system.ServerStatus
-import com.github.onlaait.fbw.system.ServerStatus.sendTabList
+import com.github.onlaait.fbw.system.ServerStatusMonitor.sendTabList
 import com.github.onlaait.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.onlaait.fbw.utils.*
 import net.kyori.adventure.text.Component
@@ -24,6 +23,7 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Player
+import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityDamageEvent
 import net.minestom.server.event.player.*
@@ -40,52 +40,50 @@ import net.minestom.server.network.packet.server.play.PlayerListHeaderAndFooterP
 import net.minestom.server.network.packet.server.play.SetTickStatePacket
 import java.util.regex.Pattern
 
-val eventHandler = MinecraftServer.getGlobalEventHandler()
-
 object Event {
     init {
-        val event = eventHandler
+        val event = handler
         val packet = MinecraftServer.getPacketListenerManager()
 
-        event.addListener(ServerListPingEvent::class.java) { e ->
+        addListener<ServerListPingEvent> { e ->
             if (!ServerProperties.ENABLE_STATUS) {
                 e.isCancelled = true
                 return@addListener
             }
-            e.responseData = ServerUtils.responseData
+            e.responseData = Server.pingResponse
         }
 
-        event.addListener(AsyncPlayerPreLoginEvent::class.java) { e ->
+        addListener<AsyncPlayerPreLoginEvent> { e ->
             val gameProfile = e.gameProfile
             Logger.info("UUID of player ${gameProfile.name} is ${gameProfile.uuid}")
         }
 
-        event.addListener(AsyncPlayerConfigurationEvent::class.java) { e ->
-            val player = e.player
+        addListener<AsyncPlayerConfigurationEvent> { e ->
+            val p = e.player as FPlayer
 
             if (
-                !player.isOp &&
-                !player.kickIfBanned() &&
-                (!ServerProperties.WHITE_LIST || !player.kickIfNotWhitelisted()) &&
+                !p.isOp &&
+                !p.kickIfBanned() &&
+                (!ServerProperties.WHITE_LIST || !p.kickIfNotWhitelisted()) &&
                 allPlayersCount >= ServerProperties.MAX_PLAYERS
             ) {
-                player.kick(Component.translatable("multiplayer.disconnect.server_full"))
+                p.kick(Component.translatable("multiplayer.disconnect.server_full"))
             }
 
-            Logger.info("${player.username}[${player.playerConnection.remoteAddress}] logged in with (entityId=${player.entityId},serverAddress=${player.playerConnection.serverAddress},locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})")
-            player.respawnPoint = Pos(0.5, 1.0, 0.5)
+            Logger.info("${p.username}[${p.playerConnection.remoteAddress}] logged in with (entityId=${p.entityId},serverAddress=${p.playerConnection.serverAddress},locale=${p.settings.locale},viewDistance=${p.settings.viewDistance})")
+            p.respawnPoint = Pos(0.5, 1.0, 0.5)
             e.spawningInstance = Instance.instance
 //            player.setReducedDebugScreenInformation(true)
 
-            if (player.data.lastKnownName == player.username) {
-                broadcast(formatText("<green><bold>●</bold><white> ${player.username}"))
+            if (p.data.lastKnownName == p.username) {
+                broadcast(formatText("<green><bold>●</bold><white> ${p.username}"))
             } else {
-                broadcast(formatText("<green><bold>●</bold><white> ${player.username}<gray>(${player.data.lastKnownName})"))
-                player.data.lastKnownName = player.username
+                broadcast(formatText("<green><bold>●</bold><white> ${p.username}<gray>(${p.data.lastKnownName})"))
+                p.data.lastKnownName = p.username
             }
 
             Audiences.players().sendTabList()
-            ServerUtils.refreshResponse()
+            Server.refreshPingResponse()
 
             /*val hpBar = Entity(EntityType.TEXT_DISPLAY)
             hpBar.setNoGravity(true)
@@ -113,7 +111,7 @@ object Event {
         }
 
         val setTickStatePacket = SetTickStatePacket(40f, false)
-        event.addListener(PlayerSpawnEvent::class.java) { e ->
+        addListener<PlayerSpawnEvent> { e ->
             val player = e.player as FPlayer
             Logger.info("PlayerSpawnEvent $player/${e.entity}/${e.instance}/${e.isFirstSpawn}")
             player.sendPacket(setTickStatePacket)
@@ -123,11 +121,11 @@ object Event {
             GameManager.objs += doll
         }
 
-        event.addListener(PlayerDisconnectEvent::class.java) { e ->
+        addListener<PlayerDisconnectEvent> { e ->
             val player = e.player as FPlayer
             Logger.info("${player.username} lost connection")
             broadcast(formatText("<gray><bold>●</bold><white> ${player.username}"))
-            ServerUtils.refreshResponse()
+            Server.refreshPingResponse()
             PlayerData.store(player)
 
             GameManager.objs -= player.doll!!
@@ -144,7 +142,7 @@ object Event {
             )
             .build()
         event.addChild(
-            EventNode.all("chat").setPriority(0).addListener(PlayerChatEvent::class.java) { e ->
+            EventNode.all("chat").setPriority(0).addListener<PlayerChatEvent> { e ->
                 e.formattedMessage =
                     Component.text("<${e.player.username}> ")
                         .append(urlSerializer.deserialize(e.rawMessage))
@@ -153,24 +151,24 @@ object Event {
             }
         )
 
-        event.addListener(PlayerCommandEvent::class.java) { e ->
+        addListener<PlayerCommandEvent> { e ->
             Logger.info("${e.player.username} issued server command: /${e.command}")
         }
 
-        event.addListener(PlayerLClickEvent::class.java) { e ->
+        addListener<PlayerLClickEvent> { e ->
 //            println("${ServerStatus.tick} L event")
             val p = e.player as FPlayer
             ExampleSkill.cast(p.doll!!)
         }
 
-        event.addListener(PlayerRClickEvent::class.java) { e ->
+        addListener<PlayerRClickEvent> { e ->
 //            println("${ServerStatus.tick} R event")
             val p = e.player as FPlayer
             ExampleSkill.cast(p.doll!!)
         }
 
         val voidJumper = mutableSetOf<Player>()
-        event.addListener(EntityDamageEvent::class.java) { e ->
+        addListener<EntityDamageEvent> { e ->
             e.isCancelled = true
             val entity = e.entity
             Logger.debug { "$entity damaged: ${e.damage}" }
@@ -185,41 +183,43 @@ object Event {
             }*/
         }
 
-        event.addListener(PlayerPluginMessageEvent::class.java) { e ->
+        addListener<PlayerPluginMessageEvent> { e ->
             if (e.identifier != "minecraft:brand") return@addListener
             val brand = e.messageString.let {
                 if (!it.first().isLetter()) it.substring(1) else it
             }
-            Logger.debug { "${e.player.username} is using client '$brand'" }
-            e.player.brand = brand
+            val p = e.player as FPlayer
+            Logger.debug { "${p.username} is using client '$brand'" }
+            p.brand = brand
         }
 
-        event.addListener(PlayerSettingsChangeEvent::class.java) { e ->
+        addListener<PlayerSettingsChangeEvent> { e ->
             val player = e.player
-            Logger.debug { ("${player.username} (locale=${player.settings.locale},viewDistance=${player.settings.viewDistance})") }
+            val settings = player.settings
+            Logger.debug { ("${player.username}'s settings are [locale=${settings.locale},viewDistance=${settings.viewDistance}]") }
         }
 
-        event.addListener(PlayerDeathEvent::class.java) { e ->
+        addListener<PlayerDeathEvent> { e ->
             e.chatMessage = null
             e.deathText = null
         }
 
-        event.addListener(PlayerMoveEvent::class.java) { e ->
+        addListener<PlayerMoveEvent> { e ->
             val p = e.player as FPlayer
             p.doll?.let { if (it.syncPosition) it.hitbox.refresh() }
         }
 
-        event.addListener(PlayerStartSneakingEvent::class.java) { e ->
+        addListener<PlayerStartSneakingEvent> { e ->
             val p = e.player as FPlayer
             p.doll?.let { if (it.syncPosition) it.hitbox.refresh() }
         }
 
-        event.addListener(PlayerStopSneakingEvent::class.java) { e ->
+        addListener<PlayerStopSneakingEvent> { e ->
             val p = e.player as FPlayer
             p.doll?.let { if (it.syncPosition) it.hitbox.refresh() }
         }
 
-        event.addListener(ObjDamageEvent::class.java) { e ->
+        addListener<ObjDamageEvent> { e ->
 //            e.victim.hp -= e.damage
             e.attacker?.run {
                 if (this is Doll) player.run {
@@ -231,8 +231,9 @@ object Event {
             }
         }
 
-        event.addListener(ServerTickMonitorEvent::class.java) { e ->
-            ServerStatus.onTick(e.tickMonitor.tickTime)
+        addListener<ServerTickMonitorEvent> { e ->
+
+            Server.ticks++
         }
 
         val ignoringInPackets =
@@ -243,7 +244,7 @@ object Event {
                 ClientPlayerRotationPacket::class,
                 ClientPlayerPositionAndRotationPacket::class,
             )
-        event.addListener(PlayerPacketEvent::class.java) { e ->
+        addListener<PlayerPacketEvent> { e ->
             val p = e.packet
 //            if (!ignoringInPackets.contains(p::class)) println("-> ${Schedule.tick} $p")
         }
@@ -254,7 +255,7 @@ object Event {
                 PlayerListHeaderAndFooterPacket::class,
                 PlayerInfoUpdatePacket::class,
             )
-        event.addListener(PlayerPacketOutEvent::class.java) { e ->
+        addListener<PlayerPacketOutEvent> { e ->
             val p = e.packet
 //            if (!ignoringOutPackets.contains(p::class)) println("<- $p")
             fun disconnectInfo(kickMessage: Component) {
@@ -304,6 +305,13 @@ object Event {
             p.mouseInputs.right = true
             event.call(PlayerRClickEvent(player))
         }
-
     }
+
+    val handler get() = MinecraftServer.getGlobalEventHandler()
+
+    inline fun <reified T : Event> addListener(noinline listener: (T) -> Unit): EventNode<Event> =
+        handler.addListener(T::class.java, listener)
+
+    inline fun <reified T : Event> EventNode<Event>.addListener(noinline listener: (T) -> Unit): EventNode<Event> =
+        addListener(T::class.java, listener)
 }

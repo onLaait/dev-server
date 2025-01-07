@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.system.ServerStatus
+import com.github.onlaait.fbw.system.ServerStatusMonitor
 import com.github.onlaait.fbw.utils.CoroutineManager
 import com.github.onlaait.fbw.utils.infoMsg
 import kotlinx.coroutines.launch
@@ -13,9 +13,9 @@ object StatusCommand : Command("status") {
         setDefaultExecutor { sender, _ ->
             CoroutineManager.SUB_SCOPE.launch {
                 sender.infoMsg(
-                    "TPS: ${StringBuilder(String.format("%.1f", ServerStatus.tps))}/${ServerFlag.SERVER_TICKS_PER_SECOND} (${String.format("%.1f", ServerStatus.mspt)}/${MinecraftServer.TICK_MS} MSPT)",
-                    "CPU: ${String.format("%.1f", ServerStatus.cpuLoad * 100)} %",
-                    "메모리: ${ServerStatus.usedMem} / ${ServerStatus.totalMem} MB"
+                    "TPS: ${StringBuilder(String.format("%.1f", ServerStatusMonitor.tps))}/${ServerFlag.SERVER_TICKS_PER_SECOND} (${String.format("%.1f", ServerStatusMonitor.mspt)}/${MinecraftServer.TICK_MS} MSPT)",
+                    "CPU: ${String.format("%.1f", ServerStatusMonitor.cpuLoad * 100)} %",
+                    "메모리: ${ServerStatusMonitor.usedMem} / ${ServerStatusMonitor.totalMem} MB"
                 )
             }
         }

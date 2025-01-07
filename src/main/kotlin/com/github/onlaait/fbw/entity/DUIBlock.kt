@@ -7,12 +7,11 @@ import com.github.onlaait.fbw.math.toVec
 import com.github.onlaait.fbw.utils.editMeta
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
-import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.metadata.display.TextDisplayMeta
 import java.awt.Color
 
-class DUIBlock : Entity(EntityType.TEXT_DISPLAY) {
+class DUIBlock : FEntity(EntityType.TEXT_DISPLAY) {
 
     companion object {
         val TRANSLATION_BASE: Vec3d = Vec3d(-0.0125, -0.125, 0.0)

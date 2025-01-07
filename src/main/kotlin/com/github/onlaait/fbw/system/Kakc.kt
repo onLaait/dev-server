@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.server.eventHandler
+import com.github.onlaait.fbw.server.Event
 import net.minestom.server.event.EventDispatcher
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerChatEvent
@@ -9,7 +9,7 @@ import java.util.*
 object Kakc {
 
     init {
-        eventHandler.addChild(
+        Event.handler.addChild(
             EventNode.all("kakc").setPriority(-100).addListener(PlayerChatEvent::class.java) { e ->
                 val player = e.player
                 val uuid = player.uuid

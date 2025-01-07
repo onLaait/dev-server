@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.system
 
-import com.github.onlaait.fbw.utils.data
+import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Player
@@ -11,7 +11,7 @@ object MuteSystem {
 
     init {
         MinecraftServer.getGlobalEventHandler().addListener(PlayerChatEvent::class.java) { e ->
-            val player = e.player
+            val player = e.player as FPlayer
             if (!player.isMuted()) return@addListener
 
             val muteTime = player.data.muteTime!!
@@ -37,9 +37,10 @@ object MuteSystem {
     }
 
     fun Player.isMuted(): Boolean {
-        val muteTime = this.data.muteTime ?: return false
+        this as FPlayer
+        val muteTime = data.muteTime ?: return false
         if (muteTime == -1L || muteTime > System.currentTimeMillis()) return true
-        this.data.muteTime = null
+        data.muteTime = null
         return false
     }
 }

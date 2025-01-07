@@ -1,9 +1,9 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.system.MuteSystem.isMuted
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.alertMsg
-import com.github.onlaait.fbw.utils.data
 import com.github.onlaait.fbw.utils.sendMsg
 import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.command.builder.Command
@@ -26,7 +26,7 @@ object UnmuteCommand : Command("unmute") {
             .singleEntity(true)
 
         addSyntax({ sender, context ->
-            val player = context[argPlayer].findFirstPlayer(sender)
+            val player = context[argPlayer].findFirstPlayer(sender) as FPlayer?
             if (player == null) {
                 sender.warnMsg(MSG_PLAYER_NOTFOUND)
                 return@addSyntax

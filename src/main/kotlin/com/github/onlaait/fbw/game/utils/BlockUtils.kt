@@ -11,7 +11,7 @@ object BlockUtils {
     fun rayIntersectsBlock(rayOrigin: Vec, rayDirection: Vec, block: Point): Double? {
         val max = block.add(1.0)
         val min = block
-        val invDir = Vec(1f / rayDirection.x, 1f / rayDirection.y, 1f / rayDirection.z)
+        val invDir = Vec(1 / rayDirection.x, 1 / rayDirection.y, 1 / rayDirection.z)
         val signDirX = invDir.x < 0
         val signDirY = invDir.y < 0
         val signDirZ = invDir.z < 0

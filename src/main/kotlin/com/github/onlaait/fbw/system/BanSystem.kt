@@ -1,6 +1,7 @@
 package com.github.onlaait.fbw.system
 
 import com.github.onlaait.fbw.serializer.UuidAsStringSerializer
+import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.utils.*
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
@@ -14,8 +15,10 @@ import java.util.*
 import kotlin.io.path.*
 
 object BanSystem {
-    private const val playersFilePath = "banned-players.json"
-    private const val ipsFilePath = "banned-ips.json"
+
+    private val PLAYER_PATH = Path("banned-players.json")
+    private val IP_PATH = Path("banned-ips.json")
+
     val bannedPlayers = mutableSetOf<BannedPlayer>()
     val bannedIps = mutableSetOf<BannedIp>()
 
@@ -28,40 +31,38 @@ object BanSystem {
     fun load() {
         run {
             Logger.debug { "Loading banned players" }
-            val path = Path(playersFilePath)
-            if (path.isRegularFile()) {
+            if (PLAYER_PATH.isRegularFile()) {
                 try {
-                    bannedPlayers.addAll(JSON.decodeFromString(path.readText()))
+                    bannedPlayers.addAll(JSON.decodeFromString(PLAYER_PATH.readText()))
                 } catch (e: IllegalArgumentException) {
-                    Logger.error("Something is wrong with the format of '${path.name}', initializing it")
+                    Logger.error("Something is wrong with the format of '${PLAYER_PATH.name}', initializing it")
                 }
             } else {
-                path.writer().use { it.write("[]") }
+                PLAYER_PATH.writer().use { it.write("[]") }
             }
         }
         run {
             Logger.debug { "Loading banned ips" }
-            val path = Path(ipsFilePath)
-            if (path.isRegularFile()) {
+            if (IP_PATH.isRegularFile()) {
                 try {
-                    bannedIps.addAll(JSON.decodeFromString(path.readText()))
+                    bannedIps.addAll(JSON.decodeFromString(IP_PATH.readText()))
                 } catch (e: IllegalArgumentException) {
-                    Logger.error("Something is wrong with the format of '${path.name}', initializing it")
+                    Logger.error("Something is wrong with the format of '${IP_PATH.name}', initializing it")
                 }
             } else {
-                path.writer().use { it.write("[]") }
+                IP_PATH.writer().use { it.write("[]") }
             }
         }
     }
 
     fun storePlayers() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing banned players" }
-        Path(playersFilePath).writer().use { it.write(cleanJson(JSON.encodeToString(bannedPlayers))) }
+        PLAYER_PATH.writer().use { it.write(cleanJson(JSON.encodeToString(bannedPlayers))) }
     }.mustBeCompleted()
 
     fun storeIps() = CoroutineManager.FILE_OUT_SCOPE.launch {
         Logger.debug { "Storing banned ips" }
-        Path(ipsFilePath).writer().use { it.write(cleanJson(JSON.encodeToString(bannedIps))) }
+        IP_PATH.writer().use { it.write(cleanJson(JSON.encodeToString(bannedIps))) }
     }.mustBeCompleted()
 
     @Serializable
@@ -118,6 +119,7 @@ object BanSystem {
     }
 
     fun Player.kickIfBanned(): Boolean {
+        this as FPlayer
         for (e in bannedPlayers) {
             if (e.uuid == uuid) {
                 kick(getBanMessage(e.reason))

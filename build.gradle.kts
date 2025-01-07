@@ -68,7 +68,7 @@ tasks {
 
         manifest {
             attributes (
-                "Main-Class" to "${project.group}.Main",
+                "Main-Class" to "${project.group}.MainKt",
                 "Multi-Release" to true
             )
         }

@@ -1,8 +1,11 @@
 package com.github.onlaait.fbw.command
 
+import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.*
+import com.github.onlaait.fbw.utils.infoMsg
+import com.github.onlaait.fbw.utils.sendMsg
+import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.arguments.minecraft.ArgumentEntity
 
@@ -24,7 +27,7 @@ object InfoCommand : Command("info") {
         }
 
         addSyntax({ sender, context ->
-            val player = context[argPlayer].findFirstPlayer(sender)
+            val player = context[argPlayer].findFirstPlayer(sender) as FPlayer?
             if (player == null) {
                 sender.warnMsg(MSG_PLAYER_NOTFOUND)
                 return@addSyntax

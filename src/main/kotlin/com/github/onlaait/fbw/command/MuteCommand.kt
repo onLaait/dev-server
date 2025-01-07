@@ -1,8 +1,12 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.command.argument.ArgumentDuration
+import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.system.OpSystem.isOp
-import com.github.onlaait.fbw.utils.*
+import com.github.onlaait.fbw.utils.alertMsg
+import com.github.onlaait.fbw.utils.formattedString
+import com.github.onlaait.fbw.utils.sendMsg
+import com.github.onlaait.fbw.utils.warnMsg
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.builder.Command
 import net.minestom.server.command.builder.CommandContext
@@ -32,7 +36,7 @@ object MuteCommand : Command("mute") {
         val argDuration = ArgumentDuration("기간")
 
         fun muteTask(sender: CommandSender, context: CommandContext) {
-            val player = context[argPlayer].findFirstPlayer(sender)
+            val player = context[argPlayer].findFirstPlayer(sender) as FPlayer?
             if (player == null) {
                 sender.warnMsg(MSG_PLAYER_NOTFOUND)
                 return
