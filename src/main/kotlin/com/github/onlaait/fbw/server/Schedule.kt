@@ -2,21 +2,21 @@ package com.github.onlaait.fbw.server
 
 import com.github.onlaait.fbw.event.PlayerLClickEvent
 import com.github.onlaait.fbw.event.PlayerRClickEvent
+import com.github.onlaait.fbw.model.ModelManager
 import com.github.onlaait.fbw.utils.allPlayers
 import net.minestom.server.MinecraftServer
 import net.minestom.server.ServerFlag
+import net.minestom.server.timer.ExecutionType
 import net.minestom.server.timer.TaskSchedule
 
-val scheduleManager = MinecraftServer.getSchedulerManager()
-
 object Schedule {
+
+    val manager = MinecraftServer.getSchedulerManager()
 
     val NEXT_CLIENT_TICK = 0.05.seconds
 
     init {
-        val schedule = scheduleManager
-
-        schedule.buildTask {
+        manager.buildTask {
             allPlayers.forEach { p ->
                 p.mouseInputs.run {
                     if (left) {
@@ -32,11 +32,16 @@ object Schedule {
             }
         }.repeat(TaskSchedule.nextTick()).schedule()
 
-        schedule.buildTask {
+        manager.buildTask {
             allPlayers.forEach { p ->
 //                if (!p.isSpectating()) p.stopSpectating()
             }
         }.repeat(NEXT_CLIENT_TICK).schedule()
+
+        manager.buildTask {
+            ModelManager.tick()
+        }.executionType(ExecutionType.TICK_END).repeat(TaskSchedule.nextTick()).schedule()
+
     }
 
     inline val Double.seconds: TaskSchedule

@@ -32,9 +32,6 @@ import net.minestom.server.event.player.*
 import net.minestom.server.event.server.ServerListPingEvent
 import net.minestom.server.event.server.ServerTickMonitorEvent
 import net.minestom.server.network.packet.client.common.ClientKeepAlivePacket
-import net.minestom.server.network.packet.client.play.ClientPlayerPositionAndRotationPacket
-import net.minestom.server.network.packet.client.play.ClientPlayerPositionPacket
-import net.minestom.server.network.packet.client.play.ClientPlayerRotationPacket
 import net.minestom.server.network.packet.client.play.ClientTickEndPacket
 import net.minestom.server.network.packet.server.common.DisconnectPacket
 import net.minestom.server.network.packet.server.common.KeepAlivePacket
@@ -242,9 +239,9 @@ object Event {
             arrayOf(
                 ClientTickEndPacket::class,
                 ClientKeepAlivePacket::class,
-                ClientPlayerPositionPacket::class,
-                ClientPlayerRotationPacket::class,
-                ClientPlayerPositionAndRotationPacket::class,
+//                ClientPlayerPositionPacket::class,
+//                ClientPlayerRotationPacket::class,
+//                ClientPlayerPositionAndRotationPacket::class,
             )
         addListener<PlayerPacketEvent> { e ->
             val p = e.packet

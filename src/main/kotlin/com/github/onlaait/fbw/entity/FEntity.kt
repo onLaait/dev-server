@@ -5,7 +5,9 @@ import com.github.onlaait.fbw.server.Server
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
+import net.minestom.server.instance.Instance
 import net.minestom.server.timer.ExecutionType
+import java.util.concurrent.CompletableFuture
 
 open class FEntity(entityType: EntityType) : Entity(entityType) {
 
@@ -42,4 +44,18 @@ open class FEntity(entityType: EntityType) : Entity(entityType) {
     open fun movementClientTick() {
         super.movementTick()
     }
+
+    override fun setInstance(instance: Instance, spawnPosition: Pos): CompletableFuture<Void> {
+        onSpawn()
+        return super.setInstance(instance, spawnPosition)
+    }
+
+    open fun onSpawn() {}
+
+    override fun despawn() {
+        onDespawn()
+        super.despawn()
+    }
+
+    open fun onDespawn() {}
 }

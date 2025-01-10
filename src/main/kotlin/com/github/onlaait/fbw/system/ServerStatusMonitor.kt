@@ -1,8 +1,8 @@
 package com.github.onlaait.fbw.system
 
 import com.github.onlaait.fbw.server.Event
+import com.github.onlaait.fbw.server.Schedule
 import com.github.onlaait.fbw.server.Schedule.seconds
-import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.utils.allPlayersCount
 import com.github.onlaait.fbw.utils.formatText
 import com.sun.management.OperatingSystemMXBean
@@ -12,7 +12,6 @@ import net.minestom.server.adventure.audience.Audiences
 import net.minestom.server.entity.Player
 import net.minestom.server.event.server.ServerTickMonitorEvent
 import java.lang.management.ManagementFactory
-import java.util.concurrent.ArrayBlockingQueue
 import kotlin.math.min
 
 object ServerStatusMonitor {
@@ -33,10 +32,11 @@ object ServerStatusMonitor {
 
     private val maxTps = ServerFlag.SERVER_TICKS_PER_SECOND.toDouble()
 
-    private val lastTicks = ArrayBlockingQueue<Double>(ServerFlag.SERVER_TICKS_PER_SECOND * 5)
+    private val TICKS_DEQUE_SIZE = ServerFlag.SERVER_TICKS_PER_SECOND * 5
+    private val ticksDeque = ArrayDeque<Double>(TICKS_DEQUE_SIZE)
 
     val mspt: Double
-        get() = lastTicks.average()
+        get() = ticksDeque.average()
 
     val tps: Double
         get() = min(maxTps, 1000 / mspt)
@@ -62,11 +62,11 @@ object ServerStatusMonitor {
         cpuLoad // 첫 실행 시 렉
 
         Event.addListener<ServerTickMonitorEvent> { e ->
-            if (lastTicks.remainingCapacity() == 0) lastTicks.poll()
-            lastTicks.offer(e.tickMonitor.tickTime)
+            if (ticksDeque.size >= TICKS_DEQUE_SIZE) ticksDeque.removeFirst()
+            ticksDeque += e.tickMonitor.tickTime
         }
 
-        scheduleManager.buildTask {
+        Schedule.manager.buildTask {
             val tps = tps
             val tpsStr = String.format("%.1f", tps)
 

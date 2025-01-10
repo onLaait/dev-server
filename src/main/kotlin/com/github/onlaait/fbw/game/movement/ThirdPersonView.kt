@@ -3,7 +3,6 @@ package com.github.onlaait.fbw.game.movement
 import com.github.onlaait.fbw.game.obj.Doll
 import com.github.onlaait.fbw.math.*
 import com.github.onlaait.fbw.server.Schedule
-import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.utils.editMeta
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
@@ -24,10 +23,10 @@ class ThirdPersonView : Movement() {
             posRotInterpolationDuration = 1
         }
         vehicleE.setInstance(player.instance, player.position.withY { it + 0.6 }.withPitch(0f))
-        centerE.syncPosition = false
+        centerE.disableSyncPosition()
         vehicleE.addPassenger(player)
         schedule =
-            scheduleManager.buildTask {
+            Schedule.manager.buildTask {
                 sync()
             }.repeat(Schedule.NEXT_CLIENT_TICK).schedule()
     }
@@ -35,7 +34,7 @@ class ThirdPersonView : Movement() {
     override fun end() {
         schedule.cancel()
         vehicleE.remove()
-        centerE.syncPosition = true
+        centerE.enableSyncPosition()
     }
 
     private fun sync() {

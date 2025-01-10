@@ -41,9 +41,11 @@ operator fun Vec3f.times(other: Float): Vec3f = this.mul(other, Vec3f())
 operator fun Vec3d.plus(other: Vec3d): Vec3d = this.add(other, Vec3d())
 operator fun Vec3d.minus(other: Vec3d): Vec3d = this.sub(other, Vec3d())
 operator fun Vec3d.times(other: Vec3d): Vec3d = this.mul(other, Vec3d())
+operator fun Vec3d.times(other: Double): Vec3d = this.mul(other, Vec3d())
 
 operator fun Quatf.plus(other: Quatf): Quatf = this.add(other, Quatf())
 operator fun Quatf.times(other: Quatf): Quatf = this.mul(other, Quatf())
+fun Quatf.copy(): Quatf = Quatf(x, y, z, w)
 fun Quatf.toFloatArray(): FloatArray = floatArrayOf(x, y, z, w)
 
 fun Vec3f.toVec(): Vec  = Vec(x.toDouble(), y.toDouble(), z.toDouble())

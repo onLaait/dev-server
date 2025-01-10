@@ -49,6 +49,7 @@ object PacketListener {
             handler.call(PlayerRClickEvent(p))
         }
 
+
     }
 
     inline fun <reified T : ClientPacket> setPlayListener(noinline consumer: (T, FPlayer) -> Unit) {

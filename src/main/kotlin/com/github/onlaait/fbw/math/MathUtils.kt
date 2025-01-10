@@ -24,6 +24,10 @@ operator fun Pos.plus(pos: Pos): Pos = this.add(pos)
 
 operator fun Pos.plus(vec: Vec): Pos = this.add(vec)
 
+operator fun Pos.plus(vec: Vec3f): Pos = this.add(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble())
+
+operator fun Pos.plus(vec: Vec3d): Pos = this.add(vec.x, vec.y, vec.z)
+
 operator fun Pos.minus(value: Double): Pos = this.sub(value)
 
 operator fun Pos.minus(pos: Pos): Pos = this.sub(pos)

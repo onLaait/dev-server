@@ -2,7 +2,6 @@ package com.github.onlaait.fbw.game.movement
 
 import com.github.onlaait.fbw.entity.FEntity
 import com.github.onlaait.fbw.server.Schedule
-import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.utils.editMeta
 import com.github.onlaait.fbw.utils.shakeScreen
 import net.minestom.server.entity.EntityType
@@ -38,7 +37,7 @@ class CannotStepOrRotate : Movement() {
         player.spectate(camE)
         camE.shakeScreen()
         schedule =
-            scheduleManager.buildTask {
+            Schedule.manager.buildTask {
                 syncMovement()
             }.repeat(Schedule.NEXT_CLIENT_TICK).schedule()
     }

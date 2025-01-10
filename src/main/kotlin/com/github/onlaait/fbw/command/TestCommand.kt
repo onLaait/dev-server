@@ -9,8 +9,8 @@ import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.math.Vec2d
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.server.Logger
+import com.github.onlaait.fbw.server.Schedule
 import com.github.onlaait.fbw.server.Schedule.seconds
-import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.editMeta
 import com.github.onlaait.fbw.utils.sendMsg
@@ -121,19 +121,19 @@ object TestCommand : Command("test") {
                         isHasNoGravity = true
                     }
                     e.setInstance(Instance.instance)
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         e.teleport(Pos(-1.0, 1.0, -1.0))
                     }.repeat(TaskSchedule.tick(4)).delay(TaskSchedule.tick(1))
                         .schedule()
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         e.teleport(Pos(1.0, 1.0, -1.0))
                     }.repeat(TaskSchedule.tick(4)).delay(TaskSchedule.tick(2))
                         .schedule()
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         e.teleport(Pos(1.0, 1.0, 1.0))
                     }.repeat(TaskSchedule.tick(4)).delay(TaskSchedule.tick(3))
                         .schedule()
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         e.teleport(Pos(-1.0, 1.0, 1.0))
                     }.repeat(TaskSchedule.tick(4)).delay(TaskSchedule.tick(4))
                         .schedule()
@@ -141,7 +141,7 @@ object TestCommand : Command("test") {
                 "rooted" -> {
                     val m = CannotStep()
                     p.movement.apply(m)
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         p.movement.remove(m)
                     }.delay(5.0.seconds)
                         .schedule()
@@ -149,14 +149,14 @@ object TestCommand : Command("test") {
                 "stun" -> {
                     val m = CannotStepOrRotate()
                     p.movement.apply(m)
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         p.movement.remove(m)
                     }.delay(1.5.seconds)
                         .schedule()
                 }
                 "y" -> {
                     val ys = mutableListOf<Int>()
-                    scheduleManager.submitTask {
+                    Schedule.manager.submitTask {
                         val y = p.position.y.toInt()
                         ys += y
                         if (y == 1) {
@@ -170,20 +170,20 @@ object TestCommand : Command("test") {
                 "3view" -> {
                     val m = ThirdPersonView()
                     p.movement.apply(m)
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         p.movement.remove(m)
                     }.delay(5.0.seconds)
                         .schedule()
                 }
                 "dollsync" -> {
-                    p.doll!!.syncPosition = false
-                    scheduleManager.buildTask {
-                        p.doll!!.syncPosition = true
+                    p.doll!!.disableSyncPosition()
+                    Schedule.manager.buildTask {
+                        p.doll!!.enableSyncPosition()
                     }.delay(5.0.seconds)
                         .schedule()
                 }
                 "spawn" -> {
-                    scheduleManager.buildTask {
+                    Schedule.manager.buildTask {
                         val pos = p.position
                         p.teleport(Pos(0.0, 1.0, 0.0, pos.yaw, pos.pitch))
                     }.delay(1.0.seconds)

@@ -65,8 +65,8 @@ class FPlayer(playerConnection: PlayerConnection, gameProfile: GameProfile) : Pl
     }
 
     override fun remove() {
-        doll?.remove()
         super.remove()
+        doll?.remove()
     }
 
     override fun setSneaking(sneaking: Boolean) {
