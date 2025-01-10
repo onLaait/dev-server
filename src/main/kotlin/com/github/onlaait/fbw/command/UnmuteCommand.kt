@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.system.MuteSystem.isMuted
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.alertMsg

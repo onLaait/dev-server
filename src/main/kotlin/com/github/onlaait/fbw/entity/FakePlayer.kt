@@ -8,15 +8,11 @@ import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.network.packet.server.play.PlayerInfoRemovePacket
 import net.minestom.server.network.packet.server.play.PlayerInfoUpdatePacket
 
-class FakePlayer(
+open class FakePlayer(
     private val username: String,
     private val skinTexture: String?,
     private val skinSignature: String?
 ) : FEntity(EntityType.PLAYER) {
-
-    init {
-        setNoGravity(true)
-    }
 
     override fun updateNewViewer(player: Player) {
         val properties = mutableListOf<PlayerInfoUpdatePacket.Property>()

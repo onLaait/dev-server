@@ -11,7 +11,7 @@ import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.metadata.display.TextDisplayMeta
 import java.awt.Color
 
-class DUIBlock : FEntity(EntityType.TEXT_DISPLAY) {
+class DUIBlock : UntickingEntity(EntityType.TEXT_DISPLAY) {
 
     companion object {
         val TRANSLATION_BASE: Vec3d = Vec3d(-0.0125, -0.125, 0.0)
@@ -44,7 +44,6 @@ class DUIBlock : FEntity(EntityType.TEXT_DISPLAY) {
 
     init {
         editMeta<TextDisplayMeta> {
-            isHasNoGravity = true
             text = TEXT
             textOpacity = 0
         }

@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.command
 
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.infoMsg
@@ -27,21 +27,21 @@ object InfoCommand : Command("info") {
         }
 
         addSyntax({ sender, context ->
-            val player = context[argPlayer].findFirstPlayer(sender) as FPlayer?
-            if (player == null) {
+            val p = context[argPlayer].findFirstPlayer(sender) as FPlayer?
+            if (p == null) {
                 sender.warnMsg(MSG_PLAYER_NOTFOUND)
                 return@addSyntax
             }
-            val pos = player.position
+            val pos = p.position
             sender.infoMsg(
-                "<${player.username}의 정보>",
-                "UUID: ${player.uuid}",
-                "IP: ${player.ipAddress}",
-                "Ping: ${player.latency} ms",
-                "접속 주소: ${player.playerConnection.serverAddress}",
-                "클라이언트 유형: ${player.brand}",
-                "언어: ${player.locale}(${player.locale?.displayLanguage})",
-                "시야 거리: ${player.settings.viewDistance}",
+                "<${p.username}의 정보>",
+                "UUID: ${p.uuid}",
+                "IP: ${p.ipAddress}",
+                "Ping: ${p.latency} ms",
+                "접속 주소: ${p.playerConnection.serverAddress}",
+                "클라이언트 유형: ${p.brand}",
+                "언어: ${p.locale}(${p.locale?.displayLanguage})",
+                "시야 거리: ${p.settings.viewDistance}",
                 "위치: [x: ${String.format("%.2f", pos.x)}, y: ${String.format("%.2f", pos.y)}, z: ${String.format("%.2f", pos.z)}, yaw: ${String.format("%.2f", pos.yaw)}, pitch: ${String.format("%.2f", pos.pitch)}]",
             )
         }, argPlayer)

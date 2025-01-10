@@ -1,6 +1,7 @@
 package com.github.onlaait.fbw.game.movement
 
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.entity.FPlayer
+
 
 abstract class Movement {
 

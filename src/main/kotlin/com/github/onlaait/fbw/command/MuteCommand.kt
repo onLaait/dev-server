@@ -1,7 +1,7 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.command.argument.ArgumentDuration
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.system.OpSystem.isOp
 import com.github.onlaait.fbw.utils.alertMsg
 import com.github.onlaait.fbw.utils.formattedString
@@ -36,15 +36,15 @@ object MuteCommand : Command("mute") {
         val argDuration = ArgumentDuration("기간")
 
         fun muteTask(sender: CommandSender, context: CommandContext) {
-            val player = context[argPlayer].findFirstPlayer(sender) as FPlayer?
-            if (player == null) {
+            val p = context[argPlayer].findFirstPlayer(sender) as FPlayer?
+            if (p == null) {
                 sender.warnMsg(MSG_PLAYER_NOTFOUND)
                 return
             }
             val input = context[argDuration]
             if (input == null) {
-                player.data.muteTime = -1L
-                sender.alertMsg(String.format(MSG_SUCCESS, player.username))
+                p.data.muteTime = -1L
+                sender.alertMsg(String.format(MSG_SUCCESS, p.username))
                 return
             }
             var duration = Duration.ZERO
@@ -108,8 +108,8 @@ object MuteCommand : Command("mute") {
             if (chars.isNotEmpty()) {
                 duration += String(chars).toInt().seconds
             }
-            player.data.muteTime = System.currentTimeMillis() + duration.inWholeMilliseconds
-            sender.alertMsg(String.format(MSG_SUCCESS_DURATION, player.username, duration.formattedString()))
+            p.data.muteTime = System.currentTimeMillis() + duration.inWholeMilliseconds
+            sender.alertMsg(String.format(MSG_SUCCESS_DURATION, p.username, duration.formattedString()))
         }
 
         addSyntax({ sender, context ->

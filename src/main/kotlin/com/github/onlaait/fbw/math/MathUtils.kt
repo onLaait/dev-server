@@ -4,6 +4,7 @@ import net.minestom.server.coordinate.Point
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.coordinate.Vec
 import kotlin.math.PI
+import kotlin.math.sqrt
 
 const val PI_F = PI.toFloat()
 
@@ -51,6 +52,23 @@ fun Point.toVec3d(): Vec3d = Vec3d(x(), y(), z())
 
 fun Vec.toVec3d(): Vec3d = Vec3d(x, y, z)
 
+fun fixYaw(yaw: Float): Float {
+    var yaw = yaw % 360
+    if (yaw < -180) {
+        yaw += 360
+    } else if (yaw > 180) {
+        yaw -= 360
+    }
+    return yaw
+}
+
+fun squaredMagnitude(a: Double, b: Double, c: Double): Double {
+    return a * a + b * b + c * c
+}
+
+fun magnitude(a: Double, b: Double, c: Double): Double {
+    return sqrt(squaredMagnitude(a, b, c))
+}
 object Utils {
 
     object Vec3f {

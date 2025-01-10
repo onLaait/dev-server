@@ -1,6 +1,7 @@
 package com.github.onlaait.fbw.server
 
 import com.github.onlaait.fbw.command.CommandRegister
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.physx.PxManager
 import com.github.onlaait.fbw.system.*
 import com.github.onlaait.fbw.utils.*
@@ -88,6 +89,7 @@ object Server {
             }
             i
         }
+        Logger.debug { "CLIENT_2_SERVER_TICKS: $CLIENT_2_SERVER_TICKS" }
 
         if (ServerProperties.ONLINE_MODE) MojangAuth.init()
 
@@ -114,6 +116,7 @@ object Server {
         if (ServerProperties.ENABLE_KAKC) Kakc
 
         Event
+        PacketListener
         Schedule
         ServerStatusMonitor
         CommandRegister

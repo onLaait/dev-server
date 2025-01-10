@@ -5,5 +5,5 @@ import net.minestom.server.coordinate.Pos
 interface GameObj {
 
     val caster: Caster
-    var position: Pos
+    var pos: Pos
 }

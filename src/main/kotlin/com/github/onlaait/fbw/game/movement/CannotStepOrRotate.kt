@@ -1,9 +1,7 @@
 package com.github.onlaait.fbw.game.movement
 
 import com.github.onlaait.fbw.entity.FEntity
-import com.github.onlaait.fbw.math.minus
 import com.github.onlaait.fbw.server.Schedule
-import com.github.onlaait.fbw.server.Server
 import com.github.onlaait.fbw.server.scheduleManager
 import com.github.onlaait.fbw.utils.editMeta
 import com.github.onlaait.fbw.utils.shakeScreen
@@ -20,14 +18,16 @@ class CannotStepOrRotate : Movement() {
 //    private var eyeHeight: Double = 0.0
 
     override fun start() {
-        baseE.editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = 1
+        baseE.run {
+            editMeta<ItemDisplayMeta> {
+                isHasNoGravity = false
+                posRotInterpolationDuration = 1
+            }
+            aerodynamics = player.aerodynamics
+            boundingBox = player.boundingBox
+            velocity = player.getRealVelocity()
         }
-        baseE.aerodynamics = player.aerodynamics
-        baseE.boundingBox = player.boundingBox
-        baseE.velocity = (player.position - player.previousPosition).asVec().mul(19.0 * Server.CLIENT_2_SERVER_TICKS)
         camE.editMeta<VillagerMeta> {
-            isHasNoGravity = true
             isInvisible = true
         }
 //        eyeHeight = player.eyeHeight

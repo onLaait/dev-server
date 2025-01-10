@@ -1,5 +1,6 @@
 package com.github.onlaait.fbw.server
 
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.event.PlayerLClickEvent
 import com.github.onlaait.fbw.event.PlayerRClickEvent
 import com.github.onlaait.fbw.game.GameManager
@@ -26,12 +27,15 @@ import net.minestom.server.entity.Player
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityDamageEvent
+import net.minestom.server.event.entity.EntityTeleportEvent
 import net.minestom.server.event.player.*
 import net.minestom.server.event.server.ServerListPingEvent
 import net.minestom.server.event.server.ServerTickMonitorEvent
 import net.minestom.server.network.packet.client.common.ClientKeepAlivePacket
-import net.minestom.server.network.packet.client.play.*
-import net.minestom.server.network.packet.client.play.ClientPlayerDiggingPacket.Status.*
+import net.minestom.server.network.packet.client.play.ClientPlayerPositionAndRotationPacket
+import net.minestom.server.network.packet.client.play.ClientPlayerPositionPacket
+import net.minestom.server.network.packet.client.play.ClientPlayerRotationPacket
+import net.minestom.server.network.packet.client.play.ClientTickEndPacket
 import net.minestom.server.network.packet.server.common.DisconnectPacket
 import net.minestom.server.network.packet.server.common.KeepAlivePacket
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket
@@ -42,9 +46,6 @@ import java.util.regex.Pattern
 
 object Event {
     init {
-        val event = handler
-        val packet = MinecraftServer.getPacketListenerManager()
-
         addListener<ServerListPingEvent> { e ->
             if (!ServerProperties.ENABLE_STATUS) {
                 e.isCancelled = true
@@ -112,12 +113,14 @@ object Event {
 
         val setTickStatePacket = SetTickStatePacket(40f, false)
         addListener<PlayerSpawnEvent> { e ->
-            val player = e.player as FPlayer
-            Logger.info("PlayerSpawnEvent $player/${e.entity}/${e.instance}/${e.isFirstSpawn}")
-            player.sendPacket(setTickStatePacket)
+            val p = e.player as FPlayer
+            Logger.info("PlayerSpawnEvent $p/${e.entity}/${e.instance}/${e.isFirstSpawn}")
+            p.sendPacket(setTickStatePacket)
+            p.isInvisible = true
 
-            val doll = Doll(player)
-            player.doll = doll
+            val doll = Doll(p)
+            doll.setInstance(p.instance, p.position)
+            p.doll = doll
             GameManager.objs += doll
         }
 
@@ -141,7 +144,7 @@ object Event {
                     .color(NamedTextColor.BLUE)
             )
             .build()
-        event.addChild(
+        handler.addChild(
             EventNode.all("chat").setPriority(0).addListener<PlayerChatEvent> { e ->
                 e.formattedMessage =
                     Component.text("<${e.player.username}> ")
@@ -153,18 +156,6 @@ object Event {
 
         addListener<PlayerCommandEvent> { e ->
             Logger.info("${e.player.username} issued server command: /${e.command}")
-        }
-
-        addListener<PlayerLClickEvent> { e ->
-//            println("${ServerStatus.tick} L event")
-            val p = e.player as FPlayer
-            ExampleSkill.cast(p.doll!!)
-        }
-
-        addListener<PlayerRClickEvent> { e ->
-//            println("${ServerStatus.tick} R event")
-            val p = e.player as FPlayer
-            ExampleSkill.cast(p.doll!!)
         }
 
         val voidJumper = mutableSetOf<Player>()
@@ -206,33 +197,44 @@ object Event {
 
         addListener<PlayerMoveEvent> { e ->
             val p = e.player as FPlayer
-            p.doll?.let { if (it.syncPosition) it.hitbox.refresh() }
+            val newPos = e.newPosition
+            p.doll?.run {
+                if (syncPosition) {
+                    hitbox.refresh()
+                    teleport(newPos)
+                }
+            }
+        }
+
+        addListener<EntityTeleportEvent> { e ->
+            val p = e.entity as? FPlayer ?: return@addListener
+            p.doll?.run {
+                if (syncPosition) {
+                    hitbox.refresh()
+                    teleport(e.newPosition)
+                }
+            }
         }
 
         addListener<PlayerStartSneakingEvent> { e ->
             val p = e.player as FPlayer
-            p.doll?.let { if (it.syncPosition) it.hitbox.refresh() }
+            p.doll?.run {
+                if (syncPosition) {
+                    hitbox.refresh()
+                }
+            }
         }
 
         addListener<PlayerStopSneakingEvent> { e ->
             val p = e.player as FPlayer
-            p.doll?.let { if (it.syncPosition) it.hitbox.refresh() }
-        }
-
-        addListener<ObjDamageEvent> { e ->
-//            e.victim.hp -= e.damage
-            e.attacker?.run {
-                if (this is Doll) player.run {
-                    playSound(
-                        if (e.critical) GameUtils.CRITICAL_HIT_SOUND else GameUtils.HIT_SOUND,
-                        position.withY { it + eyeHeight }
-                    )
+            p.doll?.run {
+                if (syncPosition) {
+                    hitbox.refresh()
                 }
             }
         }
 
         addListener<ServerTickMonitorEvent> { e ->
-
             Server.ticks++
         }
 
@@ -246,7 +248,7 @@ object Event {
             )
         addListener<PlayerPacketEvent> { e ->
             val p = e.packet
-//            if (!ignoringInPackets.contains(p::class)) println("-> ${Schedule.tick} $p")
+//            if (!ignoringInPackets.contains(p::class)) println("-> ${Server.ticks} $p")
         }
 
         val ignoringOutPackets =
@@ -272,38 +274,31 @@ object Event {
             }
         }
 
-        packet.setPlayListener(ClientPlayerDiggingPacket::class.java) { packet, player ->
-            val p = player as FPlayer
-            when (packet.status) {
-                STARTED_DIGGING -> {
-//                    Logger.debug { "${ServerStatus.tick} packet L start" }
-                    p.mouseInputs.left = true
-                    event.call(PlayerLClickEvent(player))
-                }
-                CANCELLED_DIGGING, FINISHED_DIGGING -> {
-//                    Logger.debug { "${ServerStatus.tick} packet L end" }
-                    p.mouseInputs.left = false
-                }
-                UPDATE_ITEM_STATE -> {
-//                    Logger.debug { "${ServerStatus.tick} packet R end" }
-                    p.mouseInputs.right = false
-                }
-                else -> {}
-            }
+
+
+
+        addListener<PlayerLClickEvent> { e ->
+//            println("${ServerStatus.tick} L event")
+            val p = e.player as FPlayer
+            ExampleSkill.cast(p.doll!!)
         }
 
-        packet.setPlayListener(ClientInteractEntityPacket::class.java) { packet, player ->
-            if (packet.type is ClientInteractEntityPacket.Attack) {
-//                Logger.debug { "${ServerStatus.tick} packet L end" }
-                event.call(PlayerLClickEvent(player))
-            }
+        addListener<PlayerRClickEvent> { e ->
+//            println("${ServerStatus.tick} R event")
+            val p = e.player as FPlayer
+            ExampleSkill.cast(p.doll!!)
         }
 
-        packet.setPlayListener(ClientUseItemPacket::class.java) { _, player ->
-//            Logger.debug { "${ServerStatus.tick} packet R start" }
-            val p = player as FPlayer
-            p.mouseInputs.right = true
-            event.call(PlayerRClickEvent(player))
+        addListener<ObjDamageEvent> { e ->
+//            e.victim.hp -= e.damage
+            e.attacker?.run {
+                if (this is Doll) player.run {
+                    playSound(
+                        if (e.critical) GameUtils.CRITICAL_HIT_SOUND else GameUtils.HIT_SOUND,
+                        getPov()
+                    )
+                }
+            }
         }
     }
 

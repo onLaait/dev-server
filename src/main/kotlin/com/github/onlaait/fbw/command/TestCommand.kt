@@ -1,11 +1,12 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.entity.DUIBlock
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.game.movement.CannotStep
 import com.github.onlaait.fbw.game.movement.CannotStepOrRotate
+import com.github.onlaait.fbw.game.movement.ThirdPersonView
 import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.math.Vec2d
-import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.server.Schedule.seconds
@@ -165,6 +166,28 @@ object TestCommand : Command("test") {
                         }
                         return@submitTask TaskSchedule.nextTick()
                     }
+                }
+                "3view" -> {
+                    val m = ThirdPersonView()
+                    p.movement.apply(m)
+                    scheduleManager.buildTask {
+                        p.movement.remove(m)
+                    }.delay(5.0.seconds)
+                        .schedule()
+                }
+                "dollsync" -> {
+                    p.doll!!.syncPosition = false
+                    scheduleManager.buildTask {
+                        p.doll!!.syncPosition = true
+                    }.delay(5.0.seconds)
+                        .schedule()
+                }
+                "spawn" -> {
+                    scheduleManager.buildTask {
+                        val pos = p.position
+                        p.teleport(Pos(0.0, 1.0, 0.0, pos.yaw, pos.pitch))
+                    }.delay(1.0.seconds)
+                        .schedule()
                 }
 
             }

@@ -1,15 +1,21 @@
-package com.github.onlaait.fbw.server
+package com.github.onlaait.fbw.entity
 
 import com.github.onlaait.fbw.game.movement.DefaultMovement
 import com.github.onlaait.fbw.game.movement.PlayerMovements
 import com.github.onlaait.fbw.game.obj.Doll
+import com.github.onlaait.fbw.math.minus
+import com.github.onlaait.fbw.server.PlayerMouseInputs
+import com.github.onlaait.fbw.server.Schedule
+import com.github.onlaait.fbw.server.Server
 import com.github.onlaait.fbw.system.PlayerData
 import net.minestom.server.coordinate.Pos
+import net.minestom.server.coordinate.Vec
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
 import net.minestom.server.network.player.GameProfile
 import net.minestom.server.network.player.PlayerConnection
+import net.minestom.server.timer.ExecutionType
 import java.net.InetSocketAddress
 
 class FPlayer(playerConnection: PlayerConnection, gameProfile: GameProfile) : Player(playerConnection, gameProfile) {
@@ -46,9 +52,36 @@ class FPlayer(playerConnection: PlayerConnection, gameProfile: GameProfile) : Pl
         fieldViewModifier = value
     }
 
-    fun getPov(): Pos = position.withY { it + eyeHeight }
+    fun getPov(): Pos =
+        position.withY {
+            var y = it + eyeHeight
+            if (vehicle != null) y -= 0.6
+            y
+        }
+
+    fun getRealVelocity(): Vec = (position - previousPosition).asVec().mul(19.0 * Server.CLIENT_2_SERVER_TICKS)
 
     fun spectate(doll: Doll) {
     }
 
+    override fun remove() {
+        doll?.remove()
+        super.remove()
+    }
+
+    override fun setSneaking(sneaking: Boolean) {
+        super.setSneaking(sneaking)
+        doll?.setSneaking(sneaking)
+    }
+
+    private var lastPosition: Pos = position
+
+    init {
+        scheduler().buildTask {
+            if (position == lastPosition) {
+                previousPosition = position
+            }
+            lastPosition = position
+        }.executionType(ExecutionType.TICK_END).repeat(Schedule.NEXT_CLIENT_TICK).schedule()
+    }
 }

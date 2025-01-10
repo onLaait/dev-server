@@ -1,10 +1,12 @@
 package com.github.onlaait.fbw.game.obj
 
+import com.github.onlaait.fbw.entity.FPlayer
+import com.github.onlaait.fbw.game.PlayerModel
 import com.github.onlaait.fbw.game.utils.Hitbox
 import com.github.onlaait.fbw.geometry.Box
 import com.github.onlaait.fbw.geometry.Cylinder
 import com.github.onlaait.fbw.math.*
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.server.Logger
 import net.minestom.server.coordinate.Pos
 
 class Doll(var player: FPlayer) : Agent() {
@@ -18,14 +20,25 @@ class Doll(var player: FPlayer) : Agent() {
         get() = TODO("Not yet implemented")
         set(value) {}
 
-    override var position: Pos = player.position
-        get() = if (syncPosition) player.position else field
+    override var pos: Pos
+        get() = position
         set(value) {
-            field = value
+            teleport(value)
             if (syncPosition) player.teleport(value)
         }
 
     var syncPosition = true
+        set(value) {
+            if (!field && value) {
+                setNoGravity(true)
+                player.teleport(pos)
+                player.velocity = velocity
+            } else if (field && !value) {
+                setNoGravity(false)
+                velocity = player.getRealVelocity().also { Logger.debug { it } }
+            }
+            field = value
+        }
 
     override val hitbox = Hitbox {
         val pos = position.toVec3f()
@@ -57,4 +70,27 @@ class Doll(var player: FPlayer) : Agent() {
     }
 
     override fun getPov() = player.getPov()
+
+    val model = PlayerModel(this, player.skin!!)
+
+
+
+
+    // Minestom Entity
+
+
+    override fun tick(time: Long) {
+        super.tick(time)
+        model.tick()
+    }
+
+    override fun movementClientTick() {
+        if (!syncPosition) super.movementClientTick()
+        model.run {
+            updateRenderState()
+            updateLimbs()
+        }
+    }
+
+//    override fun updateNewViewer(player: Player) {}
 }

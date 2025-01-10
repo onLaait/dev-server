@@ -1,7 +1,7 @@
 package com.github.onlaait.fbw.system
 
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.serializer.UuidAsStringSerializer
-import com.github.onlaait.fbw.server.FPlayer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.utils.*
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted

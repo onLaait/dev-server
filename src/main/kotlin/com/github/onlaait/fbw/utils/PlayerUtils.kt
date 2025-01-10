@@ -1,6 +1,6 @@
 package com.github.onlaait.fbw.utils
 
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.entity.FPlayer
 import net.minestom.server.MinecraftServer
 
 val allPlayers: List<FPlayer>

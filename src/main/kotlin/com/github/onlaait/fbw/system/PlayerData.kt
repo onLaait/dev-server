@@ -1,7 +1,7 @@
 package com.github.onlaait.fbw.system
 
 import com.charleskorn.kaml.Yaml
-import com.github.onlaait.fbw.server.FPlayer
+import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.utils.CoroutineManager
 import com.github.onlaait.fbw.utils.CoroutineManager.mustBeCompleted
