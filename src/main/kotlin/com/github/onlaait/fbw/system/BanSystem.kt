@@ -12,7 +12,9 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TranslatableComponent
 import net.minestom.server.entity.Player
 import java.util.*
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.readText
+import kotlin.io.path.writer
 
 object BanSystem {
 
@@ -31,25 +33,17 @@ object BanSystem {
     fun load() {
         run {
             Logger.debug { "Loading banned players" }
-            if (PLAYER_PATH.isRegularFile()) {
-                try {
-                    bannedPlayers.addAll(JSON.decodeFromString(PLAYER_PATH.readText()))
-                } catch (e: IllegalArgumentException) {
-                    Logger.error("Something is wrong with the format of '${PLAYER_PATH.name}', initializing it")
-                }
-            } else {
+            try {
+                bannedPlayers.addAll(JSON.decodeFromString(PLAYER_PATH.readText()))
+            } catch (e: Exception) {
                 PLAYER_PATH.writer().use { it.write("[]") }
             }
         }
         run {
             Logger.debug { "Loading banned ips" }
-            if (IP_PATH.isRegularFile()) {
-                try {
-                    bannedIps.addAll(JSON.decodeFromString(IP_PATH.readText()))
-                } catch (e: IllegalArgumentException) {
-                    Logger.error("Something is wrong with the format of '${IP_PATH.name}', initializing it")
-                }
-            } else {
+            try {
+                bannedIps.addAll(JSON.decodeFromString(IP_PATH.readText()))
+            } catch (e: Exception) {
                 IP_PATH.writer().use { it.write("[]") }
             }
         }

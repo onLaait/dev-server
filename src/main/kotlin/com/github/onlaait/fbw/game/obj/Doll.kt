@@ -7,6 +7,7 @@ import com.github.onlaait.fbw.geometry.Cylinder
 import com.github.onlaait.fbw.math.*
 import com.github.onlaait.fbw.model.PlayerModel
 import net.minestom.server.coordinate.Pos
+import net.minestom.server.entity.Player
 
 class Doll(var player: FPlayer) : Agent() {
 
@@ -75,7 +76,7 @@ class Doll(var player: FPlayer) : Agent() {
 
     override fun getPov() = player.getPov()
 
-    val model = PlayerModel(this, player.skin!!)
+    val model = PlayerModel(this, player.headProfile, player.isSlim)
 
 
 
@@ -83,11 +84,13 @@ class Doll(var player: FPlayer) : Agent() {
     // Minestom Entity
 
     override fun onSpawn() {
-        model.start()
+        model.init(instance, pos)
+        viewers.forEach { model.addViewer(it) }
+//        model.animationHandler.playRepeat("animation2")
     }
 
     override fun onDespawn() {
-        model.stop()
+        model.destroy()
     }
 
     override fun movementClientTick() {
@@ -98,5 +101,11 @@ class Doll(var player: FPlayer) : Agent() {
         }
     }
 
-//    override fun updateNewViewer(player: Player) {}
+    override fun updateNewViewer(player: Player) {
+        model.addViewer(player)
+    }
+
+    override fun updateOldViewer(player: Player) {
+        model.removeViewer(player)
+    }
 }

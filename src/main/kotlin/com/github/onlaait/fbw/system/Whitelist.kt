@@ -9,7 +9,9 @@ import kotlinx.serialization.encodeToString
 import net.kyori.adventure.text.Component
 import net.minestom.server.entity.Player
 import java.util.*
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.readText
+import kotlin.io.path.writer
 
 object Whitelist {
 
@@ -24,15 +26,11 @@ object Whitelist {
 
     fun load() {
         Logger.debug { "Loading whitelist" }
-        if (PATH.isRegularFile()) {
-            try {
-                val list: Set<UuidAndName> = JSON.decodeFromString(PATH.readText())
-                whitelistedPlayers.clear()
-                whitelistedPlayers.addAll(list)
-            } catch (e: Throwable) {
-                Logger.error("Something is wrong with the format of '${PATH.name}', initializing it")
-            }
-        } else {
+        try {
+            val list: Set<UuidAndName> = JSON.decodeFromString(PATH.readText())
+            whitelistedPlayers.clear()
+            whitelistedPlayers.addAll(list)
+        } catch (e: Exception) {
             PATH.writer().use { it.write("[]") }
         }
     }

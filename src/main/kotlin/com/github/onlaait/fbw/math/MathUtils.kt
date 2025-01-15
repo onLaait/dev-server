@@ -18,6 +18,28 @@ fun Float.toRad() = this * DEG_2_RAD_F
 fun Double.toDeg() = this * RAD_2_DEG
 fun Double.toRad() = this * DEG_2_RAD
 
+fun square(x: Double): Double = x * x
+
+fun squaredMagnitude(a: Double, b: Double, c: Double): Double = a * a + b * b + c * c
+
+fun magnitude(a: Double, b: Double, c: Double): Double = sqrt(squaredMagnitude(a, b, c))
+
+operator fun Point.plus(value: Double): Point = this.add(value)
+
+operator fun Point.plus(other: Point): Point = this.add(other)
+
+operator fun Point.plus(vec: Vec3f): Point = this.add(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble())
+
+operator fun Point.plus(vec: Vec3d): Point = this.add(vec.x, vec.y, vec.z)
+
+operator fun Point.minus(value: Double): Point = this.sub(value)
+
+operator fun Point.minus(other: Point): Point = this.sub(other)
+
+operator fun Point.times(value: Double): Point = this.mul(value)
+
+operator fun Point.times(other: Point): Point = this.mul(other)
+
 operator fun Pos.plus(value: Double): Pos = this.add(value)
 
 operator fun Pos.plus(pos: Pos): Pos = this.add(pos)
@@ -31,6 +53,10 @@ operator fun Pos.plus(vec: Vec3d): Pos = this.add(vec.x, vec.y, vec.z)
 operator fun Pos.minus(value: Double): Pos = this.sub(value)
 
 operator fun Pos.minus(pos: Pos): Pos = this.sub(pos)
+
+operator fun Pos.minus(vec: Vec3f): Pos = this.sub(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble())
+
+operator fun Pos.minus(vec: Vec3d): Pos = this.sub(vec.x, vec.y, vec.z)
 
 operator fun Pos.times(value: Double): Pos = this.mul(value)
 
@@ -66,13 +92,6 @@ fun fixYaw(yaw: Float): Float {
     return yaw
 }
 
-fun squaredMagnitude(a: Double, b: Double, c: Double): Double {
-    return a * a + b * b + c * c
-}
-
-fun magnitude(a: Double, b: Double, c: Double): Double {
-    return sqrt(squaredMagnitude(a, b, c))
-}
 object Utils {
 
     object Vec3f {

@@ -13,12 +13,8 @@ inline fun <reified TMeta : EntityMeta> Entity.editMeta(noinline block: TMeta.()
     editEntityMeta(TMeta::class.java, block)
 }
 
-fun Entity.shakeScreen(yaw: Float) {
+fun Entity.shakeScreen(yaw: Float = 0f) {
     sendPacketToViewersAndSelf(HitAnimationPacket(entityId, yaw))
-}
-
-fun Entity.shakeScreen() {
-    shakeScreen(0f)
 }
 
 fun Entity.shakeScreen(from: Point) {

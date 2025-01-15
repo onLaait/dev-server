@@ -11,8 +11,10 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.minestom.server.MinecraftServer
 import net.minestom.server.extras.MojangAuth
+import net.minestom.server.item.Material
 import net.minestom.server.ping.ResponseData
 import net.minestom.server.thread.MinestomThread
+import net.worldseed.multipart.ModelEngine
 import org.apache.logging.log4j.Level
 import org.apache.logging.log4j.core.config.Configurator
 import org.apache.logging.log4j.io.IoBuilder
@@ -24,7 +26,9 @@ import java.util.*
 import javax.imageio.ImageIO
 import kotlin.io.path.Path
 import kotlin.io.path.inputStream
+import kotlin.io.path.reader
 import kotlin.system.exitProcess
+
 
 object Server {
 
@@ -32,6 +36,9 @@ object Server {
         internal set
 
     val CLIENT_2_SERVER_TICKS: Int
+
+    var isClientTickTime = true
+        internal set
 
     val pingResponse: ResponseData
 
@@ -124,6 +131,12 @@ object Server {
         Instance
 
         PxManager
+
+        ModelEngine.setModelMaterial(Material.EGG)
+        val basePath = Path("src/test/resources")
+        val mappingsData = basePath.resolve("model_mappings.json").reader()
+        val modelPath = basePath.resolve("models")
+        ModelEngine.loadMappings(mappingsData, modelPath)
 
         pingResponse =
             ResponseData().apply {

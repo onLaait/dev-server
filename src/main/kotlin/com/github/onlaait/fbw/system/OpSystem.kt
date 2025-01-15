@@ -12,7 +12,9 @@ import kotlinx.serialization.encodeToString
 import net.minestom.server.command.CommandSender
 import net.minestom.server.command.ConsoleSender
 import net.minestom.server.entity.Player
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.readText
+import kotlin.io.path.writer
 
 object OpSystem {
 
@@ -27,13 +29,9 @@ object OpSystem {
 
     fun load() {
         Logger.debug { "Loading ops" }
-        if (PATH.isRegularFile()) {
-            try {
-                opPlayers.addAll(JSON.decodeFromString(PATH.readText()))
-            } catch (e: IllegalArgumentException) {
-                Logger.warn("Something is wrong with the format of '${PATH.name}', initializing it")
-            }
-        } else {
+        try {
+            opPlayers.addAll(JSON.decodeFromString(PATH.readText()))
+        } catch (e: Exception) {
             PATH.writer().use { it.write("[]") }
         }
     }

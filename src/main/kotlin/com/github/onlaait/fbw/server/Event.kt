@@ -31,6 +31,7 @@ import net.minestom.server.event.entity.EntityTeleportEvent
 import net.minestom.server.event.player.*
 import net.minestom.server.event.server.ServerListPingEvent
 import net.minestom.server.event.server.ServerTickMonitorEvent
+import net.minestom.server.item.component.HeadProfile
 import net.minestom.server.network.packet.client.common.ClientKeepAlivePacket
 import net.minestom.server.network.packet.client.play.ClientTickEndPacket
 import net.minestom.server.network.packet.server.common.DisconnectPacket
@@ -71,47 +72,23 @@ object Event {
             Logger.info("${p.username}[${p.playerConnection.remoteAddress}] logged in with (entityId=${p.entityId},serverAddress=${p.playerConnection.serverAddress},locale=${p.settings.locale},viewDistance=${p.settings.viewDistance})")
             p.respawnPoint = Pos(0.5, 1.0, 0.5)
             e.spawningInstance = Instance.instance
-//            player.setReducedDebugScreenInformation(true)
-
-            if (p.data.lastKnownName == p.username) {
-                broadcast(formatText("<green><bold>●</bold><white> ${p.username}"))
-            } else {
-                broadcast(formatText("<green><bold>●</bold><white> ${p.username}<gray>(${p.data.lastKnownName})"))
-                p.data.lastKnownName = p.username
-            }
-
-            Audiences.players().sendTabList()
-            Server.refreshPingResponse()
-
-            /*val hpBar = Entity(EntityType.TEXT_DISPLAY)
-            hpBar.setNoGravity(true)
-            (hpBar.entityMeta as TextDisplayMeta).run {
-                text = Component.text("ABCDEF")
-                billboardRenderConstraints = AbstractDisplayMeta.BillboardConstraints.CENTER
-
-            }
-            hpBar.instance = Instance.instance
-            val armorStand = Entity(EntityType.ARMOR_STAND)
-            armorStand.setNoGravity(true)
-            (armorStand.entityMeta as ArmorStandMeta).run {
-                isSmall = true
-                isHasNoBasePlate = true
-            }
-            armorStand.instance = Instance.instance
-            armorStand.addPassenger(hpBar)
-            MinecraftServer.getSchedulerManager().scheduleNextTick {
-                player.addPassenger(armorStand)
-            }
-            MinecraftServer.getSchedulerManager().submitTask {
-                armorStand.setView(player.position.yaw, 0F)
-                return@submitTask TaskSchedule.tick(1)
-            }*/
         }
 
         val setTickStatePacket = SetTickStatePacket(40f, false)
         addListener<PlayerSpawnEvent> { e ->
             val p = e.player as FPlayer
-            Logger.info("PlayerSpawnEvent $p/${e.entity}/${e.instance}/${e.isFirstSpawn}")
+            Logger.debug { "PlayerSpawnEvent ${p.username}/${e.instance}/${e.isFirstSpawn}" }
+            if (e.isFirstSpawn) {
+                if (p.data.lastKnownName == p.username) {
+                    broadcast(formatText("<green><bold>●</bold><white> ${p.username}"))
+                } else {
+                    broadcast(formatText("<green><bold>●</bold><white> ${p.username}<gray>(${p.data.lastKnownName})"))
+                    p.data.lastKnownName = p.username
+                }
+                Audiences.players().sendTabList()
+                Server.refreshPingResponse()
+            }
+//            p.setReducedDebugScreenInformation(true)
             p.sendPacket(setTickStatePacket)
             p.isInvisible = true
 
@@ -122,13 +99,14 @@ object Event {
         }
 
         addListener<PlayerDisconnectEvent> { e ->
-            val player = e.player as FPlayer
-            Logger.info("${player.username} lost connection")
-            broadcast(formatText("<gray><bold>●</bold><white> ${player.username}"))
+            val p = e.player as FPlayer
+            Logger.debug { p.instance }
+            Logger.info("${p.username} lost connection")
+            broadcast(formatText("<gray><bold>●</bold><white> ${p.username}"))
             Server.refreshPingResponse()
-            PlayerData.store(player)
+            PlayerData.store(p)
 
-            GameManager.objs -= player.doll!!
+            GameManager.objs -= p.doll!!
         }
 
 
@@ -150,6 +128,14 @@ object Event {
                         .also { Logger.info(it) }
             }
         )
+
+        addListener<PlayerSkinInitEvent> { e ->
+            val p = e.player as FPlayer
+            Logger.debug { "PlayerSkinInitEvent ${p.username}" }
+            val skin = e.skin ?: return@addListener
+            p.isSlim = skin.isSlim()
+            p.headProfile = HeadProfile(skin)
+        }
 
         addListener<PlayerCommandEvent> { e ->
             Logger.info("${e.player.username} issued server command: /${e.command}")
@@ -177,14 +163,14 @@ object Event {
                 if (!it.first().isLetter()) it.substring(1) else it
             }
             val p = e.player as FPlayer
-            Logger.debug { "${p.username} is using client '$brand'" }
+            Logger.debug { "Brand of player ${p.username} is '$brand'" }
             p.brand = brand
         }
 
         addListener<PlayerSettingsChangeEvent> { e ->
-            val player = e.player
-            val settings = player.settings
-            Logger.debug { ("${player.username}'s settings are [locale=${settings.locale},viewDistance=${settings.viewDistance}]") }
+            val p = e.player
+            val settings = p.settings
+            Logger.debug { ("Settings of player ${p.username} are $settings") }
         }
 
         addListener<PlayerDeathEvent> { e ->
@@ -231,6 +217,22 @@ object Event {
             }
         }
 
+        if (!Server.IS_SERVER_TICK_EQUAL_TO_CLIENT_TICK) {
+            var d = 1
+            addListener<ServerTickMonitorEvent> { e ->
+                if (d != 1) {
+                    if (d == Server.CLIENT_2_SERVER_TICKS) {
+                        d = 1
+                    } else {
+                        d++
+                    }
+                    Server.isClientTickTime = false
+                    return@addListener
+                }
+                d++
+                Server.isClientTickTime = true
+            }
+        }
         addListener<ServerTickMonitorEvent> { e ->
             Server.ticks++
         }

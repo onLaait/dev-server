@@ -12,8 +12,7 @@ version = "0.1"
 
 repositories {
     mavenCentral()
-//    maven("https://jitpack.io")
-//    maven("https://s01.oss.sonatype.org/content/repositories/snapshots/sonatype-oss-snapshots1")
+    maven("https://reposilite.worldseed.online/public")
 }
 
 dependencies {
@@ -53,6 +52,8 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-macos")
     runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-macos-arm64")
 
+    implementation(project(":WorldSeedEntityEngine-11.2.5fbw"))
+
 //    implementation("de.fabmax.kool:kool-physics:0.13.0")
 }
 
@@ -75,6 +76,11 @@ tasks {
 
         transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer::class.java)
     }
+
+    withType<JavaExec> {
+        jvmArgs = listOf("--add-opens java.base/java.lang=ALL-UNNAMED")
+    }
+
 }
 
 kotlin {

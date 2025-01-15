@@ -1,6 +1,7 @@
 package com.github.onlaait.fbw.command
 
 import com.github.onlaait.fbw.entity.DUIBlock
+import com.github.onlaait.fbw.entity.FEntity
 import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.game.movement.CannotStep
 import com.github.onlaait.fbw.game.movement.CannotStepOrRotate
@@ -25,7 +26,6 @@ import net.minestom.server.command.builder.arguments.number.ArgumentDouble
 import net.minestom.server.command.builder.arguments.number.ArgumentInteger
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.coordinate.Vec
-import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
@@ -38,6 +38,7 @@ import net.minestom.server.scoreboard.Sidebar.ScoreboardLine
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
 import java.lang.Thread.sleep
+
 
 object TestCommand : Command("test") {
     init {
@@ -61,11 +62,10 @@ object TestCommand : Command("test") {
         addSyntax({ sender, context ->
             val p = sender as FPlayer
             when (context[argWord]) {
-                "throw_as" -> {
+                "throw_dp" -> {
                     val pos = p.position
                     val dir = p.position.direction().mul(8.0)
-                    val entity = Entity(EntityType.ARMOR_STAND)
-                    entity.setNoGravity(true)
+                    val entity = FEntity(EntityType.ARMOR_STAND)
                     entity.setInstance(Instance.instance, p.position)
                     entity.teleport(pos.add(dir))
                     repeat(100) {
@@ -74,13 +74,6 @@ object TestCommand : Command("test") {
                         }.delay(TaskSchedule.tick(it + 1)).schedule()
                     }
                 }
-
-                "spawn_as" -> {
-                    val e = Entity(EntityType.ARMOR_STAND)
-                    e.setNoGravity(true)
-                    e.setInstance(Instance.instance, p.position)
-                }
-
                 "lag" -> {
                     sleep(10000)
                 }
@@ -107,15 +100,15 @@ object TestCommand : Command("test") {
                     p.inventory.setItemStack(6, i)
                 }
                 "interaction" -> {
-                    val e = Entity(EntityType.INTERACTION)
+                    val e = FEntity(EntityType.INTERACTION)
                     e.setInstance(Instance.instance, p.position)
                 }
                 "player" -> {
-                    val e = Entity(EntityType.PLAYER)
+                    val e = FEntity(EntityType.PLAYER)
                     e.setInstance(Instance.instance, p.position)
                 }
                 "interpolationtest" -> {
-                    val e = Entity(EntityType.ITEM_DISPLAY)
+                    val e = FEntity(EntityType.ITEM_DISPLAY)
                     e.editMeta<ItemDisplayMeta> {
                         itemStack = ItemStack.of(Material.STONE)
                         isHasNoGravity = true
@@ -189,7 +182,6 @@ object TestCommand : Command("test") {
                     }.delay(1.0.seconds)
                         .schedule()
                 }
-
             }
         }, argWord)
 
@@ -222,11 +214,11 @@ object TestCommand : Command("test") {
                 "projectile" -> {
                     var pos = p.position.add(0.0, 1.62, 0.0)
                     var v = p.position.direction().mul(arg1)
-                    val entity = Entity(EntityType.ITEM_DISPLAY)
-                    (entity.entityMeta as ItemDisplayMeta).run {
+                    val entity = FEntity(EntityType.ITEM_DISPLAY)
+                    entity.editMeta<ItemDisplayMeta> {
                         itemStack = ItemStack.of(Material.STONE)
+
                     }
-                    entity.setNoGravity(true)
                     entity.setInstance(Instance.instance, pos)
                     MinecraftServer.getSchedulerManager().buildTask {
                         v = v.mul(0.999).withY { it - 0.12 }

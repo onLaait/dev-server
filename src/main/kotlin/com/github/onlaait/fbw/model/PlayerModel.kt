@@ -1,207 +1,115 @@
 package com.github.onlaait.fbw.model
 
 import com.github.onlaait.fbw.entity.FEntity
-import com.github.onlaait.fbw.entity.UntickingEntity
 import com.github.onlaait.fbw.math.*
-import com.github.onlaait.fbw.utils.broadcast
-import com.github.onlaait.fbw.utils.editMeta
-import net.kyori.adventure.text.Component
+import com.github.onlaait.fbw.server.Server
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.coordinate.Vec
-import net.minestom.server.entity.EntityType
-import net.minestom.server.entity.PlayerSkin
-import net.minestom.server.entity.metadata.display.ItemDisplayMeta
-import net.minestom.server.item.ItemComponent
-import net.minestom.server.item.ItemStack
-import net.minestom.server.item.Material
+import net.minestom.server.instance.Instance
 import net.minestom.server.item.component.HeadProfile
+import net.worldseed.multipart.model_bones.ModelBoneImpl
+import net.worldseed.multipart.model_bones.ModelBoneViewable
+import java.io.StringReader
+import java.util.function.Function
+import java.util.function.Predicate
 import kotlin.math.cos
 
-class PlayerModel(val entity: FEntity, headProfile: HeadProfile) : Model() {
+open class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, private val slim: Boolean) : FGenericModel() {
 
-    constructor(entity: FEntity, playerSkin: PlayerSkin) : this(entity, HeadProfile(playerSkin))
+    lateinit var animationHandler: FAnimationHandler
 
-    private companion object {
-        const val INTERPOLATION_DURATION = 1
-        val SPEED_MIN_FOR_PREDICTION_SQUARED = (4.317 / 20 * 0.8).let { it * it }
-        val DEFAULT_ROTATION = floatArrayOf(0f, 0f, 0f, 1f)
-        val TORSO_T9N = Vec(0.0, -3072.0, 0.0)
-        val RIGHT_LEG_T9N = Vec(0.0, -4096.0, 0.0)
-        val LEFT_LEG_T9N = Vec(0.0, -5120.0, 0.0)
+    lateinit var head: PlayerModelBone
+    lateinit var body: PlayerModelBone
+    lateinit var rightArm: PlayerModelBone
+    lateinit var leftArm: PlayerModelBone
+    lateinit var rightLeg: PlayerModelBone
+    lateinit var leftLeg: PlayerModelBone
+
+    override fun registerBoneSuppliers() {
+        boneSuppliers[Predicate { BONE_TRANSLATIONS.containsKey(it) }] =
+            Function {
+                PlayerModelBone(
+                    it.pivot, it.name, it.rotation, it.model,
+                    BONE_TRANSLATIONS[it.name()]!!, VERTICAL_OFFSETS.getOrDefault(it.name(), 0.0), headProfile, slim
+                )
+            }
     }
 
-    private val headE = UntickingEntity(EntityType.ITEM_DISPLAY).apply {
-        editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = INTERPOLATION_DURATION
-            transformationInterpolationDuration = 1
-            itemStack = ItemStack.of(Material.PLAYER_HEAD).builder()
-                .set(ItemComponent.PROFILE, headProfile)
-                .set(ItemComponent.ITEM_MODEL, "player_display:player/head")
-                .build()
-            displayContext = ItemDisplayMeta.DisplayContext.THIRD_PERSON_RIGHT_HAND
-            viewRange = 0.6f
-            translation = Vec(0.0, 0.0, 0.0)
-            width = 1f
-            height = 1f
+    override fun getId() = null
+
+    override fun init(instance: Instance?, position: Pos, scale: Float) {
+        this.instance = instance
+        this.position = position
+
+        super.loadBones(MODEL_JSON, scale)
+
+        for (modelBonePart in getParts()) {
+            if (modelBonePart is ModelBoneViewable) viewableBones.add(modelBonePart as ModelBoneImpl)
+
+            modelBonePart.spawn(instance, modelBonePart.calculatePosition()).join()
         }
+
+        head = parts["head"]!! as PlayerModelBone
+        body = parts["body"]!! as PlayerModelBone
+        rightArm = parts["right_arm"]!! as PlayerModelBone
+        leftArm = parts["left_arm"]!! as PlayerModelBone
+        rightLeg = parts["right_leg"]!! as PlayerModelBone
+        leftLeg = parts["left_leg"]!! as PlayerModelBone
+
+        animationHandler = FAnimationHandler(this)
+
+        ModelManager.registerModel(this)
     }
 
-    private val torsoE = UntickingEntity(EntityType.ITEM_DISPLAY).apply {
-        editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = INTERPOLATION_DURATION
-            transformationInterpolationDuration = 2
-            itemStack = ItemStack.of(Material.PLAYER_HEAD).builder()
-                .set(ItemComponent.PROFILE, headProfile)
-                .set(ItemComponent.ITEM_MODEL, "player_display:player/torso")
-                .build()
-            displayContext = ItemDisplayMeta.DisplayContext.THIRD_PERSON_RIGHT_HAND
-            viewRange = 0.6f
-            translation = TORSO_T9N
-            width = 1f
-            height = -1f
-        }
+    override fun getDiff(boneName: String) = null
+
+    override fun getOffset(boneName: String) = Vec.ZERO
+
+    override fun setGlobalRotation(yaw: Double, pitch: Double) {
+        super.setGlobalRotation(yaw, 0.0)
     }
 
-    private val rightArmE = UntickingEntity(EntityType.ITEM_DISPLAY).apply {
-        editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = INTERPOLATION_DURATION
-            transformationInterpolationDuration = 2
-            itemStack = ItemStack.of(Material.PLAYER_HEAD).builder()
-                .set(ItemComponent.PROFILE, headProfile)
-                .set(ItemComponent.ITEM_MODEL, "player_display:player/right_arm")
-                .build()
-            displayContext = ItemDisplayMeta.DisplayContext.THIRD_PERSON_RIGHT_HAND
-            viewRange = 0.6f
-            translation = Vec(0.0, -1024.0, 0.0)
-            width = 1f
-            height = -1f
-        }
+    private var scale = 1f
+
+    override fun setGlobalScale(scale: Float) {
+        super.setGlobalScale(scale)
+        this.scale = scale
     }
 
-    private val leftArmE = UntickingEntity(EntityType.ITEM_DISPLAY).apply {
-        editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = INTERPOLATION_DURATION
-            transformationInterpolationDuration = 2
-            itemStack = ItemStack.of(Material.PLAYER_HEAD).builder()
-                .set(ItemComponent.PROFILE, headProfile)
-                .set(ItemComponent.ITEM_MODEL, "player_display:player/left_arm")
-                .build()
-            displayContext = ItemDisplayMeta.DisplayContext.THIRD_PERSON_RIGHT_HAND
-            viewRange = 0.6f
-            translation = Vec(0.0, -2048.0, 0.0)
-            width = 1f
-            height = -1f
-        }
-    }
-
-    private val rightLegE = UntickingEntity(EntityType.ITEM_DISPLAY).apply {
-        editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = INTERPOLATION_DURATION
-            transformationInterpolationDuration = 2
-            itemStack = ItemStack.of(Material.PLAYER_HEAD).builder()
-                .set(ItemComponent.PROFILE, headProfile)
-                .set(ItemComponent.ITEM_MODEL, "player_display:player/right_leg")
-                .build()
-            displayContext = ItemDisplayMeta.DisplayContext.THIRD_PERSON_RIGHT_HAND
-            viewRange = 0.6f
-            translation = RIGHT_LEG_T9N
-            width = 1f
-            height = -1f
-        }
-    }
-
-    private val leftLegE = UntickingEntity(EntityType.ITEM_DISPLAY).apply {
-        editMeta<ItemDisplayMeta> {
-            posRotInterpolationDuration = INTERPOLATION_DURATION
-            transformationInterpolationDuration = 2
-            itemStack = ItemStack.of(Material.PLAYER_HEAD).builder()
-                .set(ItemComponent.PROFILE, headProfile)
-                .set(ItemComponent.ITEM_MODEL, "player_display:player/left_leg")
-                .build()
-            displayContext = ItemDisplayMeta.DisplayContext.THIRD_PERSON_RIGHT_HAND
-            viewRange = 0.6f
-            translation = LEFT_LEG_T9N
-            width = 1f
-            height = -1f
-        }
-    }
-
-    private var isSpawned = false
     private var prevPrevPos = Pos.ZERO
     private var prevPos = Pos.ZERO
-    private var lastDisplayedPos = Pos.ZERO
-    private var lastSneaking = false
-    private var posChangedBefore = false
+    private var d = 1
 
-    override fun onTick() {
+    override fun draw() {
         val pos0 = entity.position
+        if (d++ != Server.CLIENT_2_SERVER_TICKS && pos0 == prevPos) return
+        d = 1
         var pos = pos0
-        val posChangedThisTime = pos0 != prevPos
-
-        if (!isSpawned) {
-            val instance = entity.instance
-            headE.setInstance(instance, pos)
-            torsoE.setInstance(instance, pos)
-            rightArmE.setInstance(instance, pos)
-            leftArmE.setInstance(instance, pos)
-            rightLegE.setInstance(instance, pos)
-            leftLegE.setInstance(instance, pos)
-            isSpawned = true
-        } else if (!posChangedThisTime && !posChangedBefore && !prevPos.samePoint(prevPrevPos)) {
+//        (entity as Doll).player.sendMsg("${(pos.toVec3d() - prevPos.toVec3d()).length().toFloat()}")
+        if (pos0 == prevPos && !prevPos.samePoint(prevPrevPos)) {
             val v = prevPos.toVec3d() - prevPrevPos.toVec3d()
             if (v.lengthSquared() > SPEED_MIN_FOR_PREDICTION_SQUARED) {
                 pos += v * 0.5
-                broadcast(Component.text("predict"))
+//                broadcast(Component.text("predict"))
             }
         }
+        position = pos
 
-        val sneaking = entity.isSneaking
-
-        if (pos != lastDisplayedPos || sneaking != lastSneaking) {
-            var upperY = pos.y + 1.4
-            var torsoY = upperY
-            if (sneaking) {
-                upperY -= 0.35
-                torsoY -= 0.3
-            }
-            val yaw = fixYaw(pos.yaw + 180)
-            val upperPos = Pos(pos.x, upperY, pos.z, yaw, 0f)
-            val torsoPos = Pos(pos.x, torsoY, pos.z, yaw, 0f)
-            val lowerPos = Pos(pos.x, pos.y + 0.7, pos.z, yaw, 0f)
-            headE.teleport(upperPos)
-            torsoE.teleport(torsoPos)
-            rightArmE.teleport(upperPos)
-            leftArmE.teleport(upperPos)
-            rightLegE.teleport(lowerPos)
-            leftLegE.teleport(lowerPos)
-
-            if (pos.pitch != lastDisplayedPos.pitch) {
-                headE.editMeta<ItemDisplayMeta> {
-                    transformationInterpolationStartDelta = 0
-                    leftRotation = Quatf()
-                        .rotateX((-pos.pitch).toRad())
-                        .normalize()
-                        .toFloatArray()
+        arrayOf(head, body, rightArm, leftArm, rightLeg, leftLeg).forEach {
+            arrayOf(it.extraOffset, it.extraRotation).forEach {
+                it.run {
+                    x = 0.0
+                    y = 0.0
+                    z = 0.0
                 }
             }
-
-            lastDisplayedPos = pos
         }
 
-        if (sneaking != lastSneaking) {
-            torsoE.editMeta<ItemDisplayMeta> {
-                transformationInterpolationStartDelta = 0
-                leftRotation =
-                    if (sneaking) {
-                        Quatf()
-                            .rotateX(-0.5f)
-                            .normalize()
-                            .toFloatArray()
-                    } else {
-                        DEFAULT_ROTATION
-                    }
-            }
-        }
+        globalRotation = pos.yaw.toDouble()
+        head.extraRotation.x = -pos.pitch.toDouble()
 
         val g = limbFrequency
         val h = limbAmplitudeMultiplier
@@ -209,70 +117,29 @@ class PlayerModel(val entity: FEntity, headProfile: HeadProfile) : Model() {
         val b = cos(a + PI_F)
         val c = cos(a)
         val d = 1.4f * h
-        var rightArmPitch = b * h
-        var leftArmPitch = c * h
-        if (sneaking) {
-            rightArmPitch -= 0.4f
-            leftArmPitch -= 0.4f
-        }
-        val rightLegPitch = c * d
-        val leftLegPitch = b * d
+        rightArm.extraRotation.x += (b * h).toDeg()
+        leftArm.extraRotation.x += (c * h).toDeg()
+        rightLeg.extraRotation.x += (c * d).toDeg()
+        leftLeg.extraRotation.x += (b * d).toDeg()
 
-        rightArmE.editMeta<ItemDisplayMeta> {
-            transformationInterpolationStartDelta = 0
-            leftRotation = Quatf()
-                .rotateX(rightArmPitch)
-                .normalize()
-                .toFloatArray()
-        }
-        leftArmE.editMeta<ItemDisplayMeta> {
-            transformationInterpolationStartDelta = 0
-            leftRotation = Quatf()
-                .rotateX(leftArmPitch)
-                .normalize()
-                .toFloatArray()
-        }
-        rightLegE.editMeta<ItemDisplayMeta> {
-            transformationInterpolationStartDelta = 0
-            leftRotation = Quatf()
-                .rotateX(rightLegPitch)
-                .normalize()
-                .toFloatArray()
-            if (sneaking) {
-                translation = RIGHT_LEG_T9N.withY { it - 0.115 }.withZ(0.23)
-            } else {
-                translation = RIGHT_LEG_T9N
-            }
-        }
-        leftLegE.editMeta<ItemDisplayMeta> {
-            transformationInterpolationStartDelta = 0
-            leftRotation = Quatf()
-                .rotateX(leftLegPitch)
-                .normalize()
-                .toFloatArray()
-            if (sneaking) {
-                translation = LEFT_LEG_T9N.withY { it - 0.115 }.withZ(0.23)
-            } else {
-                translation = LEFT_LEG_T9N
-            }
+        if (entity.isSneaking) {
+            head.extraOffset.y -= 0.35 * 4
+            body.extraOffset.y -= 0.3 * 4
+            body.extraRotation.x -= 0.5.toDeg()
+            rightArm.extraOffset.y -= 0.3 * 4
+            rightArm.extraRotation.x -= 0.4.toDeg()
+            leftArm.extraOffset.y -= 0.3 * 4
+            leftArm.extraRotation.x -= 0.4.toDeg()
+            rightLeg.extraOffset.y -= 0.115 * 4
+            rightLeg.extraOffset.z += 0.23 * 4
+            leftLeg.extraOffset.y -= 0.115 * 4
+            leftLeg.extraOffset.z += 0.23 * 4
         }
 
-        lastSneaking = sneaking
-        if (!posChangedBefore || posChangedThisTime) {
-            prevPrevPos = prevPos
-            prevPos = pos0
-        }
-        posChangedBefore = posChangedThisTime
-    }
+        prevPrevPos = prevPos
+        prevPos = pos0
 
-    override fun onRemoved() {
-        headE.remove()
-        torsoE.remove()
-        rightArmE.remove()
-        leftArmE.remove()
-        rightLegE.remove()
-        leftLegE.remove()
-
+        super.draw()
     }
 
     private val limbAnimator = LimbAnimator()
@@ -280,7 +147,7 @@ class PlayerModel(val entity: FEntity, headProfile: HeadProfile) : Model() {
     fun updateLimbs() {
         val pos = entity.position
         val prevPos = entity.previousPosition
-        val f = magnitude(pos.x - prevPos.x, 0.0, pos.z - prevPos.z).toFloat()
+        val f = magnitude(pos.x - prevPos.x, 0.0, pos.z - prevPos.z).toFloat() / scale
         updateLimbs(f)
     }
 
@@ -296,5 +163,35 @@ class PlayerModel(val entity: FEntity, headProfile: HeadProfile) : Model() {
         val tickDelta = 1f
         limbFrequency = limbAnimator.getPos(tickDelta)
         limbAmplitudeMultiplier = limbAnimator.getSpeed(tickDelta)
+    }
+
+    override fun destroy() {
+        animationHandler.destroy()
+        super.destroy()
+    }
+
+    companion object {
+        protected val GSON: Gson = GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
+        private val MODEL_JSON: JsonObject = GSON.fromJson(StringReader(SteveModel.MODEL_STRING), JsonObject::class.java)
+
+        private val VERTICAL_OFFSETS = mapOf(
+            "head" to 1.4,
+            "body" to 1.4,
+            "right_arm" to 1.2825,
+            "left_arm" to 1.2825,
+            "right_leg" to 0.7,
+            "left_leg" to 0.7
+        )
+
+        private val BONE_TRANSLATIONS = mapOf(
+            "head" to 0,
+            "body" to -3072,
+            "right_arm" to -1024,
+            "left_arm" to -2048,
+            "right_leg" to -4096,
+            "left_leg" to -5120
+        )
+
+        val SPEED_MIN_FOR_PREDICTION_SQUARED = square(4.317 * 0.8 / 20)
     }
 }

@@ -12,7 +12,10 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.minestom.server.entity.Player
 import java.nio.file.Path
-import kotlin.io.path.*
+import kotlin.io.path.Path
+import kotlin.io.path.createDirectories
+import kotlin.io.path.readText
+import kotlin.io.path.writer
 
 @Serializable
 data class PlayerData(
@@ -32,9 +35,10 @@ data class PlayerData(
             player as FPlayer
             Logger.debug { "Loading player data of ${player.username}" }
             val path = getPath(player)
-            return if (path.isRegularFile()) {
+
+            return try {
                 Yaml.default.decodeFromString(path.readText())
-            } else {
+            } catch (_: Exception) {
                 PlayerData(player.username)
             }
         }

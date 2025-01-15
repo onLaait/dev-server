@@ -1,10 +1,10 @@
 package com.github.onlaait.fbw.game.movement
 
+import com.github.onlaait.fbw.entity.FEntity
 import com.github.onlaait.fbw.game.obj.Doll
 import com.github.onlaait.fbw.math.*
 import com.github.onlaait.fbw.server.Schedule
 import com.github.onlaait.fbw.utils.editMeta
-import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.metadata.display.ItemDisplayMeta
 import net.minestom.server.timer.Task
@@ -12,14 +12,13 @@ import net.minestom.server.timer.Task
 class ThirdPersonView : Movement() {
 
     private lateinit var centerE: Doll
-    private val vehicleE = Entity(EntityType.ITEM_DISPLAY)
+    private val vehicleE = FEntity(EntityType.ITEM_DISPLAY)
 
     private lateinit var schedule: Task
 
     override fun start() {
         centerE = player.doll!!
         vehicleE.editMeta<ItemDisplayMeta> {
-            isHasNoGravity = true
             posRotInterpolationDuration = 1
         }
         vehicleE.setInstance(player.instance, player.position.withY { it + 0.6 }.withPitch(0f))
