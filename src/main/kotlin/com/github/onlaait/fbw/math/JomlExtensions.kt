@@ -1,5 +1,6 @@
 package com.github.onlaait.fbw.math
 
+import net.minestom.server.coordinate.Point
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.coordinate.Vec
 import org.joml.*
@@ -40,6 +41,7 @@ operator fun Vec3f.times(other: Float): Vec3f = this.mul(other, Vec3f())
 
 operator fun Vec3d.plus(other: Vec3d): Vec3d = this.add(other, Vec3d())
 operator fun Vec3d.minus(other: Vec3d): Vec3d = this.sub(other, Vec3d())
+operator fun Vec3d.minus(other: Point): Vec3d = this.sub(other.x(), other.y(), other.z(), Vec3d())
 operator fun Vec3d.times(other: Vec3d): Vec3d = this.mul(other, Vec3d())
 operator fun Vec3d.times(other: Double): Vec3d = this.mul(other, Vec3d())
 

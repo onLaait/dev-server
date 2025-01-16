@@ -32,12 +32,16 @@ class FAnimationHandler(private val model: GenericModel) : AnimationHandler {
     }
 
     private fun loadDefaultAnimations() {
-        val loadedAnimations = ModelLoader.loadAnimations(model.id ?: return)
-        // Init animation
+        val models = mutableSetOf("default.bbmodel")
+        model.id?.let { models += it }
         var i = 0
-        for ((key, value) in loadedAnimations["animations"].asJsonObject.entrySet()) {
-            registerAnimation(key, value, i)
-            i--
+        models.forEach {
+            val loadedAnimations = ModelLoader.loadAnimations(it)
+            // Init animation
+            for ((key, value) in loadedAnimations["animations"].asJsonObject.entrySet()) {
+                registerAnimation(key, value, i)
+                i--
+            }
         }
     }
 

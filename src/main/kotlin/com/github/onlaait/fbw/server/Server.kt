@@ -21,12 +21,12 @@ import org.apache.logging.log4j.io.IoBuilder
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.nio.file.Paths
 import java.text.DecimalFormat
 import java.util.*
 import javax.imageio.ImageIO
 import kotlin.io.path.Path
 import kotlin.io.path.inputStream
-import kotlin.io.path.reader
 import kotlin.system.exitProcess
 
 
@@ -133,9 +133,8 @@ object Server {
         PxManager
 
         ModelEngine.setModelMaterial(Material.EGG)
-        val basePath = Path("src/test/resources")
-        val mappingsData = basePath.resolve("model_mappings.json").reader()
-        val modelPath = basePath.resolve("models")
+        val mappingsData = ClassLoader.getSystemResourceAsStream("model_mappings.json")!!.reader()
+        val modelPath = Paths.get(ClassLoader.getSystemResource("models").toURI())
         ModelEngine.loadMappings(mappingsData, modelPath)
 
         pingResponse =

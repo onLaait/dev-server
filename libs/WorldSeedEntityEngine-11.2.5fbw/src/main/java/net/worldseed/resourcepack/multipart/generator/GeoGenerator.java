@@ -92,6 +92,8 @@ public class GeoGenerator {
 
         for (var element : elements) {
             JsonObject el = element.asJsonObject();
+            if (el.containsKey("visibility") && !el.getBoolean("visibility")) continue; // PATCH
+
             float scale = 0.25f;
 
             double inflate = 0;

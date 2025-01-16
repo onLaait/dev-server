@@ -8,6 +8,7 @@ import com.github.onlaait.fbw.game.movement.CannotStepOrRotate
 import com.github.onlaait.fbw.game.movement.ThirdPersonView
 import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.math.Vec2d
+import com.github.onlaait.fbw.model.Minimal
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.server.Schedule
@@ -21,6 +22,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextColor
 import net.minestom.server.MinecraftServer
 import net.minestom.server.command.builder.Command
+import net.minestom.server.command.builder.arguments.ArgumentLiteral
 import net.minestom.server.command.builder.arguments.ArgumentWord
 import net.minestom.server.command.builder.arguments.number.ArgumentDouble
 import net.minestom.server.command.builder.arguments.number.ArgumentInteger
@@ -37,6 +39,7 @@ import net.minestom.server.scoreboard.Sidebar
 import net.minestom.server.scoreboard.Sidebar.ScoreboardLine
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
+import net.worldseed.multipart.animations.AnimationHandlerImpl
 import java.lang.Thread.sleep
 
 
@@ -45,6 +48,8 @@ object TestCommand : Command("test") {
         setCondition { sender, _ -> sender.isOp }
 
         val argWord = ArgumentWord("word")
+        val argAnim = ArgumentLiteral("anim")
+        val argWord1 = ArgumentWord("word1")
         val argInt1 = ArgumentInteger("int1")
         val argDouble1 = ArgumentDouble("double1")
         val argDouble2 = ArgumentDouble("double2")
@@ -182,11 +187,24 @@ object TestCommand : Command("test") {
                     }.delay(1.0.seconds)
                         .schedule()
                 }
+                "model" -> {
+                    val m = Minimal()
+                    m.init(p.instance, p.position)
+                    m.addViewer(p)
+                    val anim = AnimationHandlerImpl(m)
+                    anim.playRepeat("test")
+                }
             }
         }, argWord)
 
         addSyntax({ sender, context ->
-            val p = sender as Player
+            val p = sender as FPlayer
+            val arg1 = context[argWord1]
+            p.doll!!.model.playAnimation(arg1)
+        }, argAnim, argWord1)
+
+        addSyntax({ sender, context ->
+            val p = sender as FPlayer
             when (context[argWord]) {
                 "schedule" -> {
                     repeat(context[argInt1]) { i ->
@@ -235,6 +253,10 @@ object TestCommand : Command("test") {
                 }
                 "shake" -> {
                     p.shakeScreen(arg1.toFloat())
+                }
+                "modelscale" -> {
+                    p.sendMsg("d")
+                    p.doll!!.model.setGlobalScale(arg1.toFloat())
                 }
             }
         }, argWord, argDouble1)

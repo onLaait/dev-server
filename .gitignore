@@ -3,7 +3,7 @@
 /build/
 /out/
 /.idea/
-/src/test/
+/src/test/kotlin
 /logs/
 /playerdata/
 /server.properties

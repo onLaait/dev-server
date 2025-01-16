@@ -25,7 +25,7 @@ public class BoneAnimationImpl implements BoneAnimation {
     private short tick = 0;
     private AnimationHandlerImpl.AnimationDirection direction = AnimationHandlerImpl.AnimationDirection.FORWARD;
 
-    public BoneAnimationImpl(String modelName, String animationName, String boneName, ModelBone bone, JsonElement keyframes, ModelLoader.AnimationType animationType, double length) {
+    public BoneAnimationImpl(String modelName, String animationName, String boneName, ModelBone bone, JsonElement keyframes, ModelLoader.AnimationType animationType, double length) { // PATCH
         this.type = animationType;
         this.length = (int) (length * 20);
         this.name = animationName;

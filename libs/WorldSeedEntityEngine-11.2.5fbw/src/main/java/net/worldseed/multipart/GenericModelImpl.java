@@ -54,7 +54,7 @@ public abstract class GenericModelImpl implements GenericModel {
     private final EventNode<ModelEvent> eventNode;
     private final Map<Player, RGBLike> playerGlowColors = Collections.synchronizedMap(new WeakHashMap<>());
     protected Instance instance;
-    public Pos position;
+    private Pos position;
     private double globalRotation;
     private double pitch;
 
@@ -192,10 +192,12 @@ public abstract class GenericModelImpl implements GenericModel {
 
                 if (predicate.test(name)) {
                     var modelBonePart = supplier.apply(new ModelBoneInfo(name, pivotPos, boneRotation, bone.getAsJsonObject().getAsJsonArray("cubes"), this, scale));
+                    found = true; // PATCH
+                    if (modelBonePart == null) break; // PATCH
 
                     additionalBones.addAll(modelBonePart.getChildren());
                     parts.put(name, modelBonePart);
-                    found = true;
+                    // PATCH
 
                     break;
                 }
@@ -204,8 +206,10 @@ public abstract class GenericModelImpl implements GenericModel {
             if (!found) {
                 var modelBonePart = defaultBoneSupplier.apply(new ModelBoneInfo(name, pivotPos, boneRotation, bone.getAsJsonObject().getAsJsonArray("cubes"), this, scale));
 
-                additionalBones.addAll(modelBonePart.getChildren());
-                parts.put(name, modelBonePart);
+                if (modelBonePart != null) { // PATCH
+                    additionalBones.addAll(modelBonePart.getChildren());
+                    parts.put(name, modelBonePart);
+                } // PATCH
             }
         }
 
@@ -221,6 +225,7 @@ public abstract class GenericModelImpl implements GenericModel {
                 if (child == null) continue;
                 ModelBone parentBone = this.parts.get(parentString);
 
+                if (parentBone == null) continue; // PATCH
                 child.setParent(parentBone);
                 parentBone.addChild(child);
             }

@@ -1,7 +1,9 @@
 package com.github.onlaait.fbw.model
 
 import com.github.onlaait.fbw.math.Vec3d
+import com.github.onlaait.fbw.math.minus
 import com.github.onlaait.fbw.math.plus
+import com.github.onlaait.fbw.math.times
 import com.github.onlaait.fbw.server.DefaultExceptionHandler
 import com.github.onlaait.fbw.utils.editMeta
 import net.kyori.adventure.util.RGBLike
@@ -17,6 +19,7 @@ import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 import net.minestom.server.item.component.HeadProfile
 import net.worldseed.multipart.GenericModel
+import net.worldseed.multipart.ModelLoader.AnimationType
 import net.worldseed.multipart.Quaternion
 import net.worldseed.multipart.model_bones.BoneEntity
 import net.worldseed.multipart.model_bones.ModelBone
@@ -30,7 +33,7 @@ class PlayerModelBone(
     rotation: Point,
     model: GenericModel,
     translation: Int,
-    private val verticalOffset: Double,
+    private val extraDiff: Vec,
     headProfile: HeadProfile,
     private val slim: Boolean
 ) : ModelBoneImpl(pivot, name, rotation, model, 1f), ModelBoneViewable, FModelBone {
@@ -55,27 +58,7 @@ class PlayerModelBone(
             }
         }
 
-        when (this.name) {
-            "head", "body" -> {
-                this.diff = this.pivot
-            }
-
-            "right_arm" -> {
-                this.diff = this.pivot.add(-1.17, 0.0, 0.0)
-            }
-
-            "left_arm" -> {
-                this.diff = this.pivot.add(1.17, 0.0, 0.0)
-            }
-
-            "right_leg" -> {
-                this.diff = this.pivot.add(-0.4446, 0.0, 0.0)
-            }
-
-            "left_leg" -> {
-                this.diff = this.pivot.add(0.4446, 0.0, 0.0)
-            }
-        }
+        this.diff = this.pivot.add(extraDiff)
     }
 
     private fun customModelDataFromName(name: String): Int {
@@ -103,8 +86,6 @@ class PlayerModelBone(
         if (offset == null || stand == null) return
 
         val scale = calculateScale()
-        val position = calculatePosition()
-
         val q = Quaternion(calculateRotation())
         stand.editMeta<ItemDisplayMeta> {
             transformationInterpolationStartDelta = 0
@@ -112,36 +93,58 @@ class PlayerModelBone(
             rightRotation = floatArrayOf(q.x().toFloat(), q.y().toFloat(), q.z().toFloat(), q.w().toFloat())
             translation = calculatePositionInternal().withY { it + baseTranslation }
         }
+
+        val position = calculatePosition()
         stand.teleport(position)
     }
 
+    override fun applyTransform(p: Point): Point {
+        var endPos = p
+
+        if (diff != null) {
+            endPos = calculateScale(endPos, propogatedScale, pivot - diff + extraOffset * PlayerModel.MAGIC_NUMBER)
+            endPos = calculateRotation(endPos, propogatedRotation, pivot - diff + extraOffset * PlayerModel.MAGIC_NUMBER)
+        } else {
+            endPos = calculateScale(endPos, propogatedScale, pivot)
+            endPos = calculateRotation(endPos, propogatedRotation, pivot)
+        }
+
+        for (currentAnimation in allAnimations) {
+            if (currentAnimation != null && currentAnimation.isPlaying) {
+                if (currentAnimation.type == AnimationType.TRANSLATION) {
+                    val calculatedTransform = currentAnimation.transform * PlayerModel.MAGIC_NUMBER
+                    endPos = endPos.add(calculatedTransform)
+                }
+            }
+        }
+
+        if (this.parent != null) {
+            endPos = parent.applyTransform(endPos)
+        }
+
+        return endPos
+    }
+
     override fun calculatePosition(): Pos {
-        var p = offset ?: Pos.ZERO
-        return Pos.fromPoint(p)
-            .div(4.0).mul(scale.toDouble())
-            .add(model.position)
-            .add(model.globalOffset)
-            .withView(0f, 0f)
+        return model.position.withView(0f, 0f)
     }
 
     private fun calculatePositionInternal(): Vec {
         if (this.offset == null) return Vec.ZERO
         var p = this.offset
+        p += extraOffset * PlayerModel.MAGIC_NUMBER
+        p += Vec(0.0, -extraDiff.y, 0.0)
         p = applyTransform(p)
-        p += extraOffset
         p = calculateGlobalRotation(p)
-        return Pos.fromPoint(p).div(4.0).add(0.0, verticalOffset, 0.0).mul(scale.toDouble()).asVec()
+        return Pos.fromPoint(p).div(4.0).mul(scale.toDouble()).asVec()
     }
 
     override fun calculateRotation(): Point {
-        var q = calculateFinalAngle(Quaternion(propogatedRotation))
+        var q = calculateFinalAngle(Quaternion(propogatedRotation + extraRotation))
         val pq = Quaternion(Vec(0.0, 180 - model.globalRotation, 0.0))
         q = pq.multiply(q)
         return q.toEuler()
     }
-
-    override fun getPropogatedRotation() =
-        super.getPropogatedRotation() + extraRotation
 
     override fun calculateScale() = calculateFinalScale(propogatedScale)
 

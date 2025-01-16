@@ -11,18 +11,17 @@ import kotlin.system.exitProcess
 fun main() {
     MinecraftServer.init()
     ModelEngine.setModelMaterial(Material.EGG)
-    val basePath = Path("src/test/resources")
-    val modelPath = basePath.resolve("models")
+    val modelPath = Path("src/main/resources/models")
     modelPath.deleteRecursively()
-    val packPath = basePath.resolve("resourcepack")
+    val packPath = Path("src/test/resources/resourcepack")
     packPath.deleteRecursively()
-    basePath.resolve("resourcepack_template").copyToRecursively(
+    Path("src/test/resources/resourcepack_template").copyToRecursively(
         packPath,
         { _, _, e -> throw e },
         followLinks = false,
         overwrite = true
     )
-    val config = PackBuilder.Generate(basePath.resolve("bbmodel"), packPath, modelPath)
-    basePath.resolve("model_mappings.json").writeText(config.modelMappings())
+    val config = PackBuilder.Generate(Path("src/test/resources/bbmodel"), packPath, modelPath)
+    Path("src/main/resources/model_mappings.json").writeText(config.modelMappings())
     exitProcess(0)
 }

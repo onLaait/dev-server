@@ -20,6 +20,8 @@ fun Double.toRad() = this * DEG_2_RAD
 
 fun square(x: Double): Double = x * x
 
+fun square(x: Float): Float = x * x
+
 fun squaredMagnitude(a: Double, b: Double, c: Double): Double = a * a + b * b + c * c
 
 fun magnitude(a: Double, b: Double, c: Double): Double = sqrt(squaredMagnitude(a, b, c))
@@ -35,6 +37,12 @@ operator fun Point.plus(vec: Vec3d): Point = this.add(vec.x, vec.y, vec.z)
 operator fun Point.minus(value: Double): Point = this.sub(value)
 
 operator fun Point.minus(other: Point): Point = this.sub(other)
+
+operator fun Point.minus(vec: Vec3f): Point = this.sub(vec.x.toDouble(), vec.y.toDouble(), vec.z.toDouble())
+
+operator fun Point.minus(vec: Vec3d): Point = this.sub(vec.x, vec.y, vec.z)
+
+operator fun Point.times(value: Float): Point = this.mul(value.toDouble())
 
 operator fun Point.times(value: Double): Point = this.mul(value)
 

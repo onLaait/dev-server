@@ -12,8 +12,8 @@ class EmoteExample(instance: Instance, pos: Pos, skin: PlayerSkin, slim: Boolean
         loadEmotes(ANIMATIONS)
     }
 
-    fun play() {
-        animationHandler.playOnce("animation") {}
+    fun play(anim: String) {
+        animationHandler.playOnce(anim) {}
     }
 
     companion object {
@@ -21,37 +21,13 @@ class EmoteExample(instance: Instance, pos: Pos, skin: PlayerSkin, slim: Boolean
             "{\n" +
                     "\t\"format_version\": \"1.8.0\",\n" +
                     "\t\"animations\": {\n" +
-                    "\t\t\"animation\": {\n" +
-                    "\t\t\t\"animation_length\": 2,\n" +
+                    "\t\t\"death\": {\n" +
+                    "\t\t\t\"animation_length\": 1,\n" +
                     "\t\t\t\"bones\": {\n" +
-                    "\t\t\t\t\"head\": {\n" +
+                    "\t\t\t\t\"abcd\": {\n" +
                     "\t\t\t\t\t\"rotation\": {\n" +
-                    "\t\t\t\t\t\t\"0.35\": [0, 0, 0],\n" +
-                    "\t\t\t\t\t\t\"1.35\": [-90, 0, 0]\n" +
-                    "\t\t\t\t\t}\n" +
-                    "\t\t\t\t},\n" +
-                    "\t\t\t\t\"right_arm\": {\n" +
-                    "\t\t\t\t\t\"rotation\": {\n" +
-                    "\t\t\t\t\t\t\"0.35\": [0, 0, 0],\n" +
-                    "\t\t\t\t\t\t\"1.35\": [-90, 0, 0]\n" +
-                    "\t\t\t\t\t}\n" +
-                    "\t\t\t\t},\n" +
-                    "\t\t\t\t\"left_arm\": {\n" +
-                    "\t\t\t\t\t\"rotation\": {\n" +
-                    "\t\t\t\t\t\t\"0.35\": [0, 0, 0],\n" +
-                    "\t\t\t\t\t\t\"1.35\": [0, 0, -90]\n" +
-                    "\t\t\t\t\t}\n" +
-                    "\t\t\t\t},\n" +
-                    "\t\t\t\t\"right_leg\": {\n" +
-                    "\t\t\t\t\t\"rotation\": {\n" +
-                    "\t\t\t\t\t\t\"0.35\": [0, 0, 0],\n" +
-                    "\t\t\t\t\t\t\"1.35\": [-90, 0, 0]\n" +
-                    "\t\t\t\t\t}\n" +
-                    "\t\t\t\t},\n" +
-                    "\t\t\t\t\"left_leg\": {\n" +
-                    "\t\t\t\t\t\"rotation\": {\n" +
-                    "\t\t\t\t\t\t\"0.35\": [0, 0, 0],\n" +
-                    "\t\t\t\t\t\t\"1.35\": [90, 0, 0]\n" +
+                    "\t\t\t\t\t\t\"0.0\": [0, 0, 0],\n" +
+                    "\t\t\t\t\t\t\"0.5\": [0, 0, 90]\n" +
                     "\t\t\t\t\t}\n" +
                     "\t\t\t\t}\n" +
                     "\t\t\t}\n" +

@@ -17,7 +17,7 @@ import java.util.function.Predicate
 open class EmoteModel(private val skin: PlayerSkin, private val slim: Boolean) : GenericModelImpl() {
 
     override fun registerBoneSuppliers() {
-        boneSuppliers[Predicate { true }] =
+        boneSuppliers[Predicate { BONE_TRANSLATIONS.containsKey(it) }] =
             Function { info ->
                 ModelBoneEmote(
                     info.pivot(), info.name(), info.rotation(), info.model(),
@@ -26,7 +26,7 @@ open class EmoteModel(private val skin: PlayerSkin, private val slim: Boolean) :
             }
     }
 
-    override fun getId() = null
+    override fun getId() = "test.bbmodel"
 
     override fun init(instance: Instance?, position: Pos) {
         this.instance = instance

@@ -1,0 +1,1 @@
+{"format_version":"1.8.0","animations":{"death":{"loop":false,"animation_length":1.0,"bones":{"base":{"rotation":{"0.0":{"post":[{"x":"0","y":"0","z":"0"}],"lerp_mode":"linear"},"0.5":{"post":[{"x":0,"y":0,"z":90}],"lerp_mode":"linear"}},"position":{},"scale":{}}}}}}

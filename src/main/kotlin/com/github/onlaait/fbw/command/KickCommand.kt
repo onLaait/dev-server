@@ -24,8 +24,7 @@ object KickCommand : Command("kick") {
             sender.sendMsg(usage("${context.commandName} <대상> [사유]"))
         }
 
-        val argPlayer = ArgumentEntity("플레이어")
-            .onlyPlayers(true)
+        val argPlayer = ArgumentEntity("플레이어").onlyPlayers(true)
         val argReason = ArgumentText("사유")
 
         fun kickTask(sender: CommandSender, context: CommandContext) {
