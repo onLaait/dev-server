@@ -1,10 +1,10 @@
-# 프로젝트 제외 경로
 /.gradle/
+/.idea/
 /build/
 /out/
-/.idea/
-/src/test/kotlin
 /logs/
 /playerdata/
+/src/test/kotlin/
+/src/test/resources/resourcepack/
 /server.properties
 /*.json

@@ -8,7 +8,7 @@ import com.github.onlaait.fbw.game.movement.CannotStepOrRotate
 import com.github.onlaait.fbw.game.movement.ThirdPersonView
 import com.github.onlaait.fbw.game.utils.showOneDust
 import com.github.onlaait.fbw.math.Vec2d
-import com.github.onlaait.fbw.model.Minimal
+import com.github.onlaait.fbw.model.TestModel
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.server.Logger
 import com.github.onlaait.fbw.server.Schedule
@@ -188,11 +188,14 @@ object TestCommand : Command("test") {
                         .schedule()
                 }
                 "model" -> {
-                    val m = Minimal()
+                    val m = TestModel()
                     m.init(p.instance, p.position)
                     m.addViewer(p)
                     val anim = AnimationHandlerImpl(m)
                     anim.playRepeat("test")
+                }
+                "viewer" -> {
+                    p.doll!!.model.removeViewer(p)
                 }
             }
         }, argWord)

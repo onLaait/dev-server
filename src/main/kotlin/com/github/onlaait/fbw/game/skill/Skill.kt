@@ -2,12 +2,19 @@ package com.github.onlaait.fbw.game.skill
 
 import com.github.onlaait.fbw.game.obj.Caster
 
-interface Skill {
+abstract class Skill(val name: String) {
 
-    val description: String
+    abstract val description: String
 
-    val cooldown: Double
+    abstract val cooldown: Double
 
-    fun cast(o: Caster)
+    fun cast(caster: Caster) {
+        function(caster)
+    }
 
+    private var function: (Caster) -> Unit = {}
+
+    fun skill(function: (Caster) -> Unit) {
+        this.function = function
+    }
 }

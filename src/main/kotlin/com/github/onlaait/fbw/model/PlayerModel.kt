@@ -13,13 +13,12 @@ import net.minestom.server.item.component.HeadProfile
 import net.worldseed.multipart.animations.AnimationHandler
 import net.worldseed.multipart.model_bones.ModelBoneImpl
 import net.worldseed.multipart.model_bones.ModelBoneViewable
-import net.worldseed.multipart.model_bones.misc.ModelBoneVFX
 import java.util.function.Function
 import java.util.function.Predicate
 import kotlin.math.cos
 import kotlin.math.sqrt
 
-class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, private val slim: Boolean) : FGenericModel() {
+class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, private val slim: Boolean, private val modelId: String = "default.bbmodel") : FGenericModel() {
 
     lateinit var animationHandler: AnimationHandler
 
@@ -30,12 +29,14 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
     lateinit var rightLeg: PlayerModelBone
     lateinit var leftLeg: PlayerModelBone
 
+    lateinit var organs: Array<PlayerModelBone>
+
     val equipment = EquipmentModel(this)
 
-    override fun getId() = "test.bbmodel"
+    override fun getId() = modelId
 
     override fun registerBoneSuppliers() {
-        boneSuppliers[Predicate { it == "base" }] = Function { ModelBoneVFX(it.pivot, it.name, it.rotation, it.model, it.scale) }
+        boneSuppliers[Predicate { it == "base" }] = Function { ModelBoneRoot(it.pivot, it.name, it.rotation, it.model, it.scale) }
         boneSuppliers[Predicate { BONE_TRANSLATIONS.containsKey(it) }] =
             Function {
                 PlayerModelBone(
@@ -64,6 +65,7 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
         leftArm = parts["left_arm"]!! as PlayerModelBone
         rightLeg = parts["right_leg"]!! as PlayerModelBone
         leftLeg = parts["left_leg"]!! as PlayerModelBone
+        organs = arrayOf(head, body, rightArm, leftArm, rightLeg, leftLeg)
 
         animationHandler = FAnimationHandler(this)
 
@@ -72,6 +74,8 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
         setGlobalScale(1f)
 
         ModelManager.registerModel(this)
+
+        draw()
     }
 
     override fun getDiff(boneName: String) = null
@@ -107,19 +111,9 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
 //                broadcast(Component.text("predict"))
             }
         }
-        position = pos
+        setPosition(pos)
+        setGlobalRotation(pos.yaw.toDouble())
 
-        arrayOf(head, body, rightArm, leftArm, rightLeg, leftLeg).forEach {
-            arrayOf(it.extraOffset, it.extraRotation).forEach {
-                it.run {
-                    x = 0.0
-                    y = 0.0
-                    z = 0.0
-                }
-            }
-        }
-
-        globalRotation = pos.yaw.toDouble()
         head.extraRotation.x = -pos.pitch.toDouble()
 
         val g = limbFrequency
@@ -152,6 +146,20 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
 
         super.draw()
         equipment.draw()
+
+        organs.forEach {
+            arrayOf(it.extraOffset, it.extraRotation).forEach {
+                it.run {
+                    x = 0.0
+                    y = 0.0
+                    z = 0.0
+                }
+            }
+        }
+    }
+
+    override fun setPosition(pos: Pos?) {
+        position = pos
     }
 
     override fun addViewer(player: Player): Boolean {

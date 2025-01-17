@@ -13,13 +13,6 @@ open class FEntity(entityType: EntityType) : Entity(entityType) {
 
     init {
         setNoGravity(true)
-
-        scheduler().buildTask {
-            if (position == lastPosition) {
-                previousPosition = position
-            }
-            lastPosition = position
-        }.executionType(ExecutionType.TICK_END).repeat(Schedule.NEXT_CLIENT_TICK).schedule()
     }
 
     override fun movementTick() {
@@ -33,6 +26,12 @@ open class FEntity(entityType: EntityType) : Entity(entityType) {
     override fun spawn() {
         super.spawn()
         onSpawn()
+        scheduler().buildTask {
+            if (position == lastPosition) {
+                previousPosition = position
+            }
+            lastPosition = position
+        }.executionType(ExecutionType.TICK_END).repeat(Schedule.NEXT_CLIENT_TICK).schedule()
     }
 
     open fun onSpawn() {}

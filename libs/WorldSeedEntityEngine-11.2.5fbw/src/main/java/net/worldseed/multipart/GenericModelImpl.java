@@ -54,8 +54,8 @@ public abstract class GenericModelImpl implements GenericModel {
     private final EventNode<ModelEvent> eventNode;
     private final Map<Player, RGBLike> playerGlowColors = Collections.synchronizedMap(new WeakHashMap<>());
     protected Instance instance;
-    private Pos position;
-    private double globalRotation;
+    public Pos position; // PATCH
+    public double globalRotation; // PATCH
     private double pitch;
 
     protected record ModelBoneInfo(String name, Point pivot, Point rotation, JsonArray cubes, GenericModel model,

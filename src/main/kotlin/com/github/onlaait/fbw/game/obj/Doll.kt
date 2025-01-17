@@ -1,7 +1,9 @@
 package com.github.onlaait.fbw.game.obj
 
 import com.github.onlaait.fbw.entity.FPlayer
+import com.github.onlaait.fbw.game.skill.SkillHolder
 import com.github.onlaait.fbw.game.utils.Hitbox
+import com.github.onlaait.fbw.game.weapon.WeaponHolder
 import com.github.onlaait.fbw.geometry.Box
 import com.github.onlaait.fbw.geometry.Cylinder
 import com.github.onlaait.fbw.math.*
@@ -76,7 +78,10 @@ class Doll(var player: FPlayer) : Agent() {
 
     override fun getPov() = player.getPov()
 
-    val model = PlayerModel(this, player.headProfile, player.isSlim)
+    override val weaponHolder = WeaponHolder(this)
+    override val skillHolder = SkillHolder(this)
+
+    var model = PlayerModel(this, player.headProfile, player.isSlim, "test.bbmodel")
 
 
 
@@ -86,7 +91,6 @@ class Doll(var player: FPlayer) : Agent() {
     override fun onSpawn() {
         model.init(instance, pos)
         viewers.forEach { model.addViewer(it) }
-//        model.animationHandler.playRepeat("animation2")
     }
 
     override fun onDespawn() {

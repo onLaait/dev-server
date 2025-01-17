@@ -1,12 +1,10 @@
 package com.github.onlaait.fbw.server
 
 import com.github.onlaait.fbw.entity.FPlayer
-import com.github.onlaait.fbw.event.PlayerLClickEvent
-import com.github.onlaait.fbw.event.PlayerRClickEvent
+import com.github.onlaait.fbw.event.PlayerKeyInputEvent
 import com.github.onlaait.fbw.game.GameManager
 import com.github.onlaait.fbw.game.event.ObjDamageEvent
 import com.github.onlaait.fbw.game.obj.Doll
-import com.github.onlaait.fbw.game.skill.ExampleSkill
 import com.github.onlaait.fbw.game.utils.GameUtils
 import com.github.onlaait.fbw.system.BanSystem.kickIfBanned
 import com.github.onlaait.fbw.system.OpSystem.isOp
@@ -33,7 +31,11 @@ import net.minestom.server.event.server.ServerListPingEvent
 import net.minestom.server.event.server.ServerTickMonitorEvent
 import net.minestom.server.item.component.HeadProfile
 import net.minestom.server.network.packet.client.common.ClientKeepAlivePacket
+import net.minestom.server.network.packet.client.play.ClientInteractEntityPacket
+import net.minestom.server.network.packet.client.play.ClientPlayerDiggingPacket
+import net.minestom.server.network.packet.client.play.ClientPlayerDiggingPacket.Status.*
 import net.minestom.server.network.packet.client.play.ClientTickEndPacket
+import net.minestom.server.network.packet.client.play.ClientUseItemPacket
 import net.minestom.server.network.packet.server.common.DisconnectPacket
 import net.minestom.server.network.packet.server.common.KeepAlivePacket
 import net.minestom.server.network.packet.server.login.LoginDisconnectPacket
@@ -217,6 +219,11 @@ object Event {
             }
         }
 
+        addListener<PlayerBlockBreakEvent> { e ->
+            e.isCancelled = true
+        }
+
+
         if (!Server.IS_SERVER_TICK_EQUAL_TO_CLIENT_TICK) {
             var d = 1
             addListener<ServerTickMonitorEvent> { e ->
@@ -246,8 +253,41 @@ object Event {
 //                ClientPlayerPositionAndRotationPacket::class,
             )
         addListener<PlayerPacketEvent> { e ->
-            val p = e.packet
-//            if (!ignoringInPackets.contains(p::class)) println("-> ${Server.ticks} $p")
+            val p = e.player as FPlayer
+            val packet = e.packet
+
+            when (packet) {
+                is ClientPlayerDiggingPacket -> {
+                    when (packet.status) {
+                        STARTED_DIGGING -> {
+//                    Logger.debug { "${ServerStatus.tick} packet L start" }
+                            p.mouseInputs.left = true
+                            handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT))
+                        }
+                        CANCELLED_DIGGING, FINISHED_DIGGING -> {
+//                    Logger.debug { "${ServerStatus.tick} packet L end" }
+                            p.mouseInputs.left = false
+                        }
+                        UPDATE_ITEM_STATE -> {
+//                    Logger.debug { "${ServerStatus.tick} packet R end" }
+                            p.mouseInputs.right = false
+                        }
+                        else -> {}
+                    }
+                }
+                is ClientInteractEntityPacket -> {
+                    if (packet.type is ClientInteractEntityPacket.Attack) {
+//                        Logger.debug { "${ServerStatus.tick} packet L end" }
+                        handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT))
+                    }
+                }
+                is ClientUseItemPacket -> {
+//                    Logger.debug { "${ServerStatus.tick} packet R start" }
+                    p.mouseInputs.right = true
+                    handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_RIGHT))
+                }
+            }
+//            if (!ignoringInPackets.contains(packet::class)) println("-> ${Server.ticks} $packet")
         }
 
         val ignoringOutPackets =
@@ -276,16 +316,18 @@ object Event {
 
 
 
-        addListener<PlayerLClickEvent> { e ->
-//            println("${ServerStatus.tick} L event")
+        addListener<PlayerKeyInputEvent> { e ->
             val p = e.player as FPlayer
-            ExampleSkill.cast(p.doll!!)
-        }
-
-        addListener<PlayerRClickEvent> { e ->
-//            println("${ServerStatus.tick} R event")
-            val p = e.player as FPlayer
-            ExampleSkill.cast(p.doll!!)
+            when (e.key) {
+                PlayerKeyInputEvent.Key.MOUSE_LEFT -> p.doll?.skillHolder?.cast(0)
+                PlayerKeyInputEvent.Key.MOUSE_RIGHT -> p.doll?.skillHolder?.cast(1)
+                PlayerKeyInputEvent.Key.NUM_1 -> p.doll?.skillHolder?.cast(2)
+                PlayerKeyInputEvent.Key.NUM_2 -> p.doll?.skillHolder?.cast(3)
+                PlayerKeyInputEvent.Key.NUM_3 -> p.doll?.skillHolder?.cast(4)
+                PlayerKeyInputEvent.Key.NUM_4 -> p.doll?.skillHolder?.cast(5)
+                PlayerKeyInputEvent.Key.Q -> p.doll?.skillHolder?.cast(10)
+                PlayerKeyInputEvent.Key.F -> p.doll?.weaponHolder?.reload()
+            }
         }
 
         addListener<ObjDamageEvent> { e ->
