@@ -4,5 +4,5 @@ import net.worldseed.multipart.GenericModelImpl
 
 class TestModel : GenericModelImpl() {
 
-    override fun getId() = "test.bbmodel"
+    override fun getId() = "shiroko_fpv.bbmodel"
 }

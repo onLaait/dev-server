@@ -1,6 +1,7 @@
 package com.github.onlaait.fbw.game.obj
 
 import com.github.onlaait.fbw.entity.FPlayer
+import com.github.onlaait.fbw.game.character.Character
 import com.github.onlaait.fbw.game.skill.SkillHolder
 import com.github.onlaait.fbw.game.utils.Hitbox
 import com.github.onlaait.fbw.game.weapon.WeaponHolder
@@ -11,7 +12,7 @@ import com.github.onlaait.fbw.model.PlayerModel
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Player
 
-class Doll(var player: FPlayer) : Agent() {
+class Doll(var player: FPlayer, val character: Character) : Agent() {
 
     override val caster = this
 
@@ -81,7 +82,13 @@ class Doll(var player: FPlayer) : Agent() {
     override val weaponHolder = WeaponHolder(this)
     override val skillHolder = SkillHolder(this)
 
-    var model = PlayerModel(this, player.headProfile, player.isSlim, "test.bbmodel")
+    var model: PlayerModel
+
+    init {
+        weaponHolder.weapons += character.weapons
+        skillHolder.skillMap.putAll(character.skills)
+        model = PlayerModel(this, player.headProfile, player.isSlim, character.modelId)
+    }
 
 
 

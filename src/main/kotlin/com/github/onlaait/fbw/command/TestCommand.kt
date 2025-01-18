@@ -3,11 +3,14 @@ package com.github.onlaait.fbw.command
 import com.github.onlaait.fbw.entity.DUIBlock
 import com.github.onlaait.fbw.entity.FEntity
 import com.github.onlaait.fbw.entity.FPlayer
+import com.github.onlaait.fbw.game.character.Shiroko
 import com.github.onlaait.fbw.game.movement.CannotStep
 import com.github.onlaait.fbw.game.movement.CannotStepOrRotate
 import com.github.onlaait.fbw.game.movement.ThirdPersonView
-import com.github.onlaait.fbw.game.utils.showOneDust
+import com.github.onlaait.fbw.game.obj.Doll
+import com.github.onlaait.fbw.game.utils.ParticleUtils
 import com.github.onlaait.fbw.math.Vec2d
+import com.github.onlaait.fbw.model.FirstPersonViewModel
 import com.github.onlaait.fbw.model.TestModel
 import com.github.onlaait.fbw.server.Instance
 import com.github.onlaait.fbw.server.Logger
@@ -39,7 +42,6 @@ import net.minestom.server.scoreboard.Sidebar
 import net.minestom.server.scoreboard.Sidebar.ScoreboardLine
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
-import net.worldseed.multipart.animations.AnimationHandlerImpl
 import java.lang.Thread.sleep
 
 
@@ -49,6 +51,7 @@ object TestCommand : Command("test") {
 
         val argWord = ArgumentWord("word")
         val argAnim = ArgumentLiteral("anim")
+        val argCharac = ArgumentLiteral("charac")
         val argWord1 = ArgumentWord("word1")
         val argInt1 = ArgumentInteger("int1")
         val argDouble1 = ArgumentDouble("double1")
@@ -191,11 +194,16 @@ object TestCommand : Command("test") {
                     val m = TestModel()
                     m.init(p.instance, p.position)
                     m.addViewer(p)
-                    val anim = AnimationHandlerImpl(m)
-                    anim.playRepeat("test")
+//                    val anim = AnimationHandlerImpl(m)
+//                    anim.playRepeat("test")
                 }
                 "viewer" -> {
                     p.doll!!.model.removeViewer(p)
+                }
+                "fpv" -> {
+                    val m = FirstPersonViewModel(p, p.headProfile, p.isSlim, "shiroko_fpv")
+                    m.init(p.instance, p.position)
+                    m.addViewer(p)
                 }
             }
         }, argWord)
@@ -205,6 +213,14 @@ object TestCommand : Command("test") {
             val arg1 = context[argWord1]
             p.doll!!.model.playAnimation(arg1)
         }, argAnim, argWord1)
+
+
+        addSyntax({ sender, context ->
+            val p = sender as FPlayer
+            val arg1 = context[argWord1]
+            p.doll!!.remove()
+            p.doll = Doll(p, Shiroko)
+        }, argCharac, argWord1)
 
         addSyntax({ sender, context ->
             val p = sender as FPlayer
@@ -246,7 +262,7 @@ object TestCommand : Command("test") {
                         pos = pos.add(v)
 //                        Logger.debug { entity.position.distance(pos) }
                         entity.teleport(pos)
-                        showOneDust(252, 140, 255, pos)
+                        ParticleUtils.showOneDust(252, 140, 255, pos)
                     }
                         .repeat(TaskSchedule.nextTick())
                         .schedule()

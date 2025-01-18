@@ -1,10 +1,8 @@
 package com.github.onlaait.fbw.game.weapon
 
-interface Weapon {
+abstract class Weapon(val name: String) {
 
-    val name: String
+    abstract val modelId: String
 
-    val modelId: String
-
-    val ammo: Int
+    abstract val ammo: Int
 }

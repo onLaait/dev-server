@@ -3,6 +3,7 @@ package com.github.onlaait.fbw.server
 import com.github.onlaait.fbw.entity.FPlayer
 import com.github.onlaait.fbw.event.PlayerKeyInputEvent
 import com.github.onlaait.fbw.game.GameManager
+import com.github.onlaait.fbw.game.character.Shiroko
 import com.github.onlaait.fbw.game.event.ObjDamageEvent
 import com.github.onlaait.fbw.game.obj.Doll
 import com.github.onlaait.fbw.game.utils.GameUtils
@@ -94,7 +95,7 @@ object Event {
             p.sendPacket(setTickStatePacket)
             p.isInvisible = true
 
-            val doll = Doll(p)
+            val doll = Doll(p, Shiroko)
             doll.setInstance(p.instance, p.position)
             p.doll = doll
             GameManager.objs += doll
@@ -102,7 +103,6 @@ object Event {
 
         addListener<PlayerDisconnectEvent> { e ->
             val p = e.player as FPlayer
-            Logger.debug { p.instance }
             Logger.info("${p.username} lost connection")
             broadcast(formatText("<gray><bold>●</bold><white> ${p.username}"))
             Server.refreshPingResponse()

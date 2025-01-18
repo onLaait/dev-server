@@ -312,7 +312,7 @@ public class ModelParser {
             }
         }
 
-        for (var state : List.of(TextureState.HIT, TextureState.NORMAL)) {
+        for (var state : List.of(TextureState.NORMAL)) {
             var modelFile = generateModelFile(state, bbModel, bones, textureSize, textureWidth, textureHeight);
             res.add(modelFile);
 
@@ -452,7 +452,6 @@ public class ModelParser {
 
     public record TextureState(double r, double g, double b, double ar, double ag, double ab, String name) {
         public static final TextureState NORMAL = new TextureState(1.0, 1.0, 1.0, 0, 0, 0, "normal");
-        public static final TextureState HIT = new TextureState(0.7, 0.7, 0.7, 255, 0, 0, "hit");
 
         BufferedImage multiplyColour(BufferedImage oldImg) {
             ColorModel cm = oldImg.getColorModel();

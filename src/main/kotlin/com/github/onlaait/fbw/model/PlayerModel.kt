@@ -18,7 +18,7 @@ import java.util.function.Predicate
 import kotlin.math.cos
 import kotlin.math.sqrt
 
-class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, private val slim: Boolean, private val modelId: String = "default.bbmodel") : FGenericModel() {
+class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, private val slim: Boolean, val modelId: String = "default") : FGenericModel() {
 
     lateinit var animationHandler: AnimationHandler
 
@@ -33,7 +33,11 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
 
     val equipment = EquipmentModel(this)
 
-    override fun getId() = modelId
+    val animConfig = AnimationConfig.configs[modelId]
+
+    private val realId = "$modelId.bbmodel"
+
+    override fun getId() = realId
 
     override fun registerBoneSuppliers() {
         boneSuppliers[Predicate { it == "base" }] = Function { ModelBoneRoot(it.pivot, it.name, it.rotation, it.model, it.scale) }
@@ -141,6 +145,25 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
             leftLeg.extraOffset.z += SNEAKING_LEFT_LEG_OFFSET_Z
         }
 
+        if (animConfig != null) {
+            val playing = animationHandler.playing
+            if (playing != null) {
+                val animConfig = animConfig[playing]
+                if (animConfig != null) {
+                    for ((part, tags) in animConfig) {
+                        val part = parts[part] as? HumanModelBone ?: continue
+                        val rot = part.extraRotation
+                        if (tags.contains(AnimationConfig.Config.FIXED)) {
+                            rot.zero()
+                        }
+                        if (tags.contains(AnimationConfig.Config.FOLLOWING_HEAD)) {
+                            rot.x -= pos.pitch
+                        }
+                    }
+                }
+            }
+        }
+
         prevPrevPos = prevPos
         prevPos = pos0
 
@@ -148,13 +171,8 @@ class PlayerModel(val entity: FEntity, private val headProfile: HeadProfile, pri
         equipment.draw()
 
         organs.forEach {
-            arrayOf(it.extraOffset, it.extraRotation).forEach {
-                it.run {
-                    x = 0.0
-                    y = 0.0
-                    z = 0.0
-                }
-            }
+            it.extraOffset.zero()
+            it.extraRotation.zero()
         }
     }
 
