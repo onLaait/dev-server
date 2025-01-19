@@ -201,9 +201,8 @@ object TestCommand : Command("test") {
                     p.doll!!.model.removeViewer(p)
                 }
                 "fpv" -> {
-                    val m = FirstPersonViewModel(p, p.headProfile, p.isSlim, "shiroko_fpv")
+                    val m = FirstPersonViewModel(p, "shiroko")
                     m.init(p.instance, p.position)
-                    m.addViewer(p)
                 }
             }
         }, argWord)
