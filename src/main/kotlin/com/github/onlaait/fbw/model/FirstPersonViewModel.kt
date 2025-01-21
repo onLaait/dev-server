@@ -32,7 +32,7 @@ class FirstPersonViewModel(val player: FPlayer, val modelId: String = "default")
 
         setGlobalRotation(180.0)
 
-        loadBones(loadedModel, 0.3f)
+        loadBones(loadedModel, scale)
 
         for (modelBonePart in parts.values) {
             if (modelBonePart is ModelBoneViewable)
@@ -58,5 +58,9 @@ class FirstPersonViewModel(val player: FPlayer, val modelId: String = "default")
         draw()
 
         ModelManager.registerModel(this)
+    }
+
+    fun init() {
+        init(player.instance, player.position, 0.5f)
     }
 }

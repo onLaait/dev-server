@@ -8,8 +8,10 @@ class PlayerKeyInputEvent(private val player: Player, val key: Key) : PlayerEven
     override fun getPlayer() = player
 
     enum class Key {
-        MOUSE_LEFT,
-        MOUSE_RIGHT,
+        MOUSE_LEFT_DOWN,
+        MOUSE_LEFT_UP,
+        MOUSE_RIGHT_DOWN,
+        MOUSE_RIGHT_UP,
         F,
         Q,
         NUM_1,

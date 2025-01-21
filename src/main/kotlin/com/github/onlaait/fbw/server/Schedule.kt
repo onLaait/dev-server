@@ -1,6 +1,5 @@
 package com.github.onlaait.fbw.server
 
-import com.github.onlaait.fbw.event.PlayerKeyInputEvent
 import com.github.onlaait.fbw.model.ModelManager
 import com.github.onlaait.fbw.utils.allPlayers
 import net.minestom.server.MinecraftServer
@@ -19,12 +18,10 @@ object Schedule {
             allPlayers.forEach { p ->
                 p.mouseInputs.run {
                     if (left) {
-//                        println("${ServerStatus.tick} L schedule")
-                        Event.handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT))
+                        p.doll?.weaponHolder?.lClick()
                     }
                     if (right) {
-//                        println("${ServerStatus.tick} R schedule")
-                        Event.handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_RIGHT))
+                        p.doll?.weaponHolder?.rClick()
                     }
                 }
 //                it.setHeldItemSlot(4)

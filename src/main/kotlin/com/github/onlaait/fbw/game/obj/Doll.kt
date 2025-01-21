@@ -79,13 +79,15 @@ class Doll(var player: FPlayer, val character: Character) : Agent() {
 
     override fun getPov() = player.getPov()
 
-    override val weaponHolder = WeaponHolder(this)
+    override val audiences = mutableListOf(player)
+
+    override val weaponHolder = WeaponHolder(this, character.weapons)
     override val skillHolder = SkillHolder(this)
+
 
     var model: PlayerModel
 
     init {
-        weaponHolder.weapons += character.weapons
         skillHolder.skillMap.putAll(character.skills)
         model = PlayerModel(this, player.headProfile, player.isSlim, character.modelId)
     }

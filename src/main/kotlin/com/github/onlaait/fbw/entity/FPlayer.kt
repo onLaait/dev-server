@@ -1,5 +1,6 @@
 package com.github.onlaait.fbw.entity
 
+import com.github.onlaait.fbw.game.HUDManager
 import com.github.onlaait.fbw.game.movement.DefaultMovement
 import com.github.onlaait.fbw.game.movement.PlayerMovements
 import com.github.onlaait.fbw.game.obj.Doll
@@ -42,6 +43,8 @@ class FPlayer(playerConnection: PlayerConnection, gameProfile: GameProfile) : Pl
     var spectating: Entity? = null
 
     fun isSpectating(): Boolean = spectating != null
+
+    val hud by lazy { HUDManager(this) }
 
     override fun spectate(entity: Entity) {
         super.spectate(entity)

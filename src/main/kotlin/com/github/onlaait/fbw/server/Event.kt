@@ -14,6 +14,7 @@ import com.github.onlaait.fbw.system.ServerProperties
 import com.github.onlaait.fbw.system.ServerStatusMonitor.sendTabList
 import com.github.onlaait.fbw.system.Whitelist.kickIfNotWhitelisted
 import com.github.onlaait.fbw.utils.*
+import net.kyori.adventure.bossbar.BossBar
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.Style
@@ -260,31 +261,30 @@ object Event {
                 is ClientPlayerDiggingPacket -> {
                     when (packet.status) {
                         STARTED_DIGGING -> {
-//                    Logger.debug { "${ServerStatus.tick} packet L start" }
-                            p.mouseInputs.left = true
-                            handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT))
+                            handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT_DOWN))
                         }
                         CANCELLED_DIGGING, FINISHED_DIGGING -> {
-//                    Logger.debug { "${ServerStatus.tick} packet L end" }
-                            p.mouseInputs.left = false
+                            handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT_UP))
                         }
                         UPDATE_ITEM_STATE -> {
-//                    Logger.debug { "${ServerStatus.tick} packet R end" }
-                            p.mouseInputs.right = false
+                            handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_RIGHT_UP))
+                        }
+                        SWAP_ITEM_HAND -> {
+                            handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.F))
                         }
                         else -> {}
                     }
                 }
                 is ClientInteractEntityPacket -> {
                     if (packet.type is ClientInteractEntityPacket.Attack) {
-//                        Logger.debug { "${ServerStatus.tick} packet L end" }
-                        handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT))
+                        handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT_DOWN))
+                        handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_LEFT_UP))
                     }
                 }
                 is ClientUseItemPacket -> {
-//                    Logger.debug { "${ServerStatus.tick} packet R start" }
                     p.mouseInputs.right = true
-                    handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_RIGHT))
+                    handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_RIGHT_DOWN))
+                    handler.call(PlayerKeyInputEvent(p, PlayerKeyInputEvent.Key.MOUSE_RIGHT_UP))
                 }
             }
 //            if (!ignoringInPackets.contains(packet::class)) println("-> ${Server.ticks} $packet")
@@ -319,8 +319,34 @@ object Event {
         addListener<PlayerKeyInputEvent> { e ->
             val p = e.player as FPlayer
             when (e.key) {
-                PlayerKeyInputEvent.Key.MOUSE_LEFT -> p.doll?.skillHolder?.cast(0)
-                PlayerKeyInputEvent.Key.MOUSE_RIGHT -> p.doll?.skillHolder?.cast(1)
+                PlayerKeyInputEvent.Key.MOUSE_LEFT_DOWN -> {
+                    p.mouseInputs.left = true
+                    p.doll?.run {
+                        weaponHolder.lClick()
+                        weaponHolder.lHold()
+                        skillHolder.cast(0)
+                    }
+                }
+                PlayerKeyInputEvent.Key.MOUSE_LEFT_UP -> {
+                    p.mouseInputs.left = false
+                    p.doll?.run {
+                        weaponHolder.lRelease()
+                    }
+                }
+                PlayerKeyInputEvent.Key.MOUSE_RIGHT_DOWN -> {
+                    p.mouseInputs.right = true
+                    p.doll?.run {
+                        weaponHolder.rClick()
+                        weaponHolder.rHold()
+                        skillHolder.cast(1)
+                    }
+                }
+                PlayerKeyInputEvent.Key.MOUSE_RIGHT_UP -> {
+                    p.mouseInputs.right = false
+                    p.doll?.run {
+                        weaponHolder.rRelease()
+                    }
+                }
                 PlayerKeyInputEvent.Key.NUM_1 -> p.doll?.skillHolder?.cast(2)
                 PlayerKeyInputEvent.Key.NUM_2 -> p.doll?.skillHolder?.cast(3)
                 PlayerKeyInputEvent.Key.NUM_3 -> p.doll?.skillHolder?.cast(4)
